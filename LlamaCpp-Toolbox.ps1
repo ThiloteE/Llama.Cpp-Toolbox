@@ -201,6 +201,24 @@ function UpdateConfig{
 }
 #if ($version -ne $cfgVersion){UpdateConfig} # If it needs to be done do it.
 
+# Create and update .gitignore
+function GitIgnore{
+    # Create the .gitignore file if it doesn't exist
+    if (!(Test-Path -Path "$Path\.gitignore")) {
+        New-Item -ItemType File -Path "$Path\.gitignore" -Force
+    }
+    Set-Location $Path
+    $newList = @()
+    $data = git status --porcelain
+    foreach ($item in $data) {
+      if ($item -match "\?\?") {
+        $parts = $item.Trim("\?\? ").Trim('"')
+        $newList += $parts
+      }
+    }
+    Set-Content -Path $path\.gitignore -Value $newList
+}
+GitIgnore
 
 # Button to process a script.
 $Button1 = New-Object System.Windows.Forms.Button
