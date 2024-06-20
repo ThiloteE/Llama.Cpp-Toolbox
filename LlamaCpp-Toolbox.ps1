@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.8"
+$version = "0.23.9"
 ###### FIXME count 3 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -95,60 +95,60 @@ $main_form.Controls.Add($ComboBox2)
 
 # Get list of scripts from config.
 function ListScripts {
-    Get-Content -Path "$path\config.txt" | Where-Object {$_.TrimStart().StartsWith("show:")} | ForEach-Object {
-        $ComboBox2.Items.Add($_.Split(':')[1].Trim())
+    Get-Content -Path "$path\config.txt" | Where-Object {$_.TrimStart().StartsWith("show¦")} | ForEach-Object {
+        $ComboBox2.Items.Add($_.Split('¦')[1].Trim())
     }
 }
 
 # The config text for this release.
-$cfgText = "Llama.Cpp-Toolbox:$version
-config.txt:This file stores variables to be used for updates & customization. If this file is modified incorrectly, regret happens.
-build:master
-repo:3Simplex/llama.cpp.git
-branch:master
-symlinkdir:$path\Symlinks
-show:symlink
-show:model list
-show:convert-hf-to-gguf.py
-show:convert_gptj_to_gguf.py
-show:convert-legacy-llama.py
-show:convert-legacy-llama.py bpe
-show:llama-quantize.exe Q2_K
-show:llama-quantize.exe Q2_K_S
-show:llama-quantize.exe Q3_K
-show:llama-quantize.exe Q3_K_S
-show:llama-quantize.exe Q3_K_M
-show:llama-quantize.exe Q3_K_L
-show:llama-quantize.exe Q4_0
-show:llama-quantize.exe Q4_1
-show:llama-quantize.exe Q4_K
-show:llama-quantize.exe Q4_K_S
-show:llama-quantize.exe Q4_K_M
-show:llama-quantize.exe Q5_0
-show:llama-quantize.exe Q5_1
-show:llama-quantize.exe Q5_K
-show:llama-quantize.exe Q5_K_S
-show:llama-quantize.exe Q5_K_M
-show:llama-quantize.exe Q6_K
-show:llama-quantize.exe Q8_0
-show:llama-quantize.exe IQ4_NL
-show:llama-quantize.exe IQ4_XS
-show:llama-quantize.exe IQ3_XXS
-show:llama-quantize.exe IQ3_XS
-show:llama-quantize.exe IQ3_S
-show:llama-quantize.exe IQ3_M
-show:llama-quantize.exe IQ2_XXS
-show:llama-quantize.exe IQ2_XS
-show:llama-quantize.exe IQ2_S
-show:llama-quantize.exe IQ2_M
-show:llama-quantize.exe IQ1_S
-show:llama-quantize.exe IQ1_M
-show:gguf-dump.py dump
-show:gguf-dump.py keys
-show:gguf-dump.py architecture
-show:gguf-dump.py context_length
-show:gguf-dump.py head_count
-show:gguf-dump.py chat_template"
+$cfgText = "Llama.Cpp-Toolbox¦$version
+config.txt¦This file stores variables to be used for updates & customization. If this file is modified incorrectly, regret happens.
+build¦master
+repo¦3Simplex/llama.cpp.git
+branch¦master
+symlinkdir¦$path\Symlinks
+show¦symlink
+show¦model list
+show¦convert-hf-to-gguf.py
+show¦convert_gptj_to_gguf.py
+show¦convert-legacy-llama.py
+show¦convert-legacy-llama.py bpe
+show¦llama-quantize.exe Q2_K
+show¦llama-quantize.exe Q2_K_S
+show¦llama-quantize.exe Q3_K
+show¦llama-quantize.exe Q3_K_S
+show¦llama-quantize.exe Q3_K_M
+show¦llama-quantize.exe Q3_K_L
+show¦llama-quantize.exe Q4_0
+show¦llama-quantize.exe Q4_1
+show¦llama-quantize.exe Q4_K
+show¦llama-quantize.exe Q4_K_S
+show¦llama-quantize.exe Q4_K_M
+show¦llama-quantize.exe Q5_0
+show¦llama-quantize.exe Q5_1
+show¦llama-quantize.exe Q5_K
+show¦llama-quantize.exe Q5_K_S
+show¦llama-quantize.exe Q5_K_M
+show¦llama-quantize.exe Q6_K
+show¦llama-quantize.exe Q8_0
+show¦llama-quantize.exe IQ4_NL
+show¦llama-quantize.exe IQ4_XS
+show¦llama-quantize.exe IQ3_XXS
+show¦llama-quantize.exe IQ3_XS
+show¦llama-quantize.exe IQ3_S
+show¦llama-quantize.exe IQ3_M
+show¦llama-quantize.exe IQ2_XXS
+show¦llama-quantize.exe IQ2_XS
+show¦llama-quantize.exe IQ2_S
+show¦llama-quantize.exe IQ2_M
+show¦llama-quantize.exe IQ1_S
+show¦llama-quantize.exe IQ1_M
+show¦gguf-dump.py dump
+show¦gguf-dump.py keys
+show¦gguf-dump.py architecture
+show¦gguf-dump.py context_length
+show¦gguf-dump.py head_count
+show¦gguf-dump.py chat_template"
 
 # Restore the config text.
 function RestoreConfig{Add-Content -Path $path\config.txt -Value $cfgText} # Regenerate config if deleted.
@@ -157,8 +157,8 @@ function RestoreConfig{Add-Content -Path $path\config.txt -Value $cfgText} # Reg
 function RetrieveConfig($cfg){
     $lines = Get-Content -Path $path\config.txt
     foreach ($line in $lines) {
-        if ($cfg -eq $line.Split(':')[0].Trim()) {
-            $cfgValue = $line.Split(':')[1].Trim()
+        if ($cfg -eq $line.Split('¦')[0].Trim()) {
+            $cfgValue = $line.Split('¦')[1].Trim()
             return $cfgValue  # Return the retrieved value
             break }  # Exit loop after finding the first match
         }
@@ -168,9 +168,9 @@ function RetrieveConfig($cfg){
 function EditConfig($cfg){
     $lines = Get-Content -Path $path\config.txt
     foreach ($line in $lines) {
-        if ($line.StartsWith($cfg+':')) {
+        if ($line.StartsWith($cfg+'¦')) {
             # Store the modified line in a temporary variable
-            $tempLine = $line -replace '(?<=:).*', $cfgValue
+            $tempLine = $line -replace '(?<=¦).*', $cfgValue
             # Replace the original line with the modified one
             $line = $tempLine
         }
@@ -187,8 +187,8 @@ $cfg = "Llama.cpp-Toolbox"; $cfgVersion = RetrieveConfig $cfg # get-set the flag
 $Alines = $cfgText -split [Environment]::NewLine
 function UpdateConfig{
     foreach ($line in $Alines){
-        $cfg = $line.Split(':')[0].Trim();
-        $cfgValue = $line.Split(':')[1].Trim();
+        $cfg = $line.Split('¦')[0].Trim();
+        $cfgValue = $line.Split('¦')[1].Trim();
         EditConfig $cfg
         }
 }
