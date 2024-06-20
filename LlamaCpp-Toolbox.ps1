@@ -465,8 +465,8 @@ function PreReqs{
     }
     if(-not $pyenv){Read-Host "Installing pyenv, any key to continue"; Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"; &"./install-pyenv-win.ps1"}
     pyenv install 3.11
-    pyenv rehash
-    CfgBuild}
+    pyenv rehash}
+    CfgBuild
 }
 
 function CfgBuild{
