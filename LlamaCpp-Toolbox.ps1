@@ -1,9 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.22.2"
-$cfgText=1
-$cfgVersion=1
-$cfg=1
-Clear-Variable cfg # Ensure no lingering data exists for one variable "cfg".
+$version = "0.23.0"
 ###### FIXME count 3 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -57,11 +53,8 @@ $helpMenu.DropDownItems.AddRange(@($aboutItem))
 
 $main_form.Controls.Add($menuStrip1)
 
-# Define user home directory
-$userDir = $env:USERPROFILE
-
-# Define path to the directory where llama.cpp resides.
-$path = "$userDir\LlamaCpp-Toolbox"
+# The directory where LlamaCpp-Toolbox.ps1 is initialized. 
+$path = $PSScriptRoot
 
 # Define model path
 $models = "$path\llama.cpp\models"
@@ -91,7 +84,6 @@ function ListModels {
         $ComboBox1.Items.Add($file.Name)
     }
 }
-ListModels
 
 # Dropdown list containing scripts to process using the selected LLM.
 $ComboBox2 = New-Object System.Windows.Forms.ComboBox
@@ -105,7 +97,6 @@ function ListScripts {
         $ComboBox2.Items.Add($_.Split(':')[1].Trim())
     }
 }
-ListScripts
 
 # The config text for this release.
 $cfgText = "Llama.Cpp-Toolbox:$version
@@ -199,7 +190,7 @@ function UpdateConfig{
         EditConfig $cfg
         }
 }
-#if ($version -ne $cfgVersion){UpdateConfig} # If it needs to be done do it.
+#if ($version -ne $cfgVersion){UpdateConfig} # If it needs to be done do it. #Move this into the init when completed.
 
 # Create and update .gitignore
 function GitIgnore{
@@ -218,7 +209,7 @@ function GitIgnore{
     }
     Set-Content -Path $path\.gitignore -Value $newList
 }
-GitIgnore
+
 
 # Button to process a script.
 $Button1 = New-Object System.Windows.Forms.Button
@@ -464,6 +455,17 @@ function ggufDump{
 
 # Check for prerequisites and install as needed on first run or when CFG is not detected.
 function PreReqs{
+    if (python --version){$python = 1; Write-Host "(*) python is on path"}else{$python = 0; Write-Host "( ) python isn't ready"}
+    if (pyenv){$pyenv = 1; Write-Host "(*) pyenv is ready"}else{$pyenv = 0; Write-Host "( ) pyenv isn't ready"}
+    if (git help -g){$git = 1; Write-Host "(*) git is ready"}else{$git = 0; Write-Host "( ) git isn't ready"}
+    if ($python -and $pyenv -and $git) {if (Test-Path "$path\llama.cpp"){break}else{InstallToolbox}}
+    else {
+    if(-not $git){Read-Host "Installing git, any key to continue"; winget install --id Git.Git -e --source winget;InstallToolbox}
+    if(-not $python){Read-Host "Installing python, any key to continue"; winget install -e --id Python.Python.3.11 --source winget
+    }
+    if(-not $pyenv){Read-Host "Installing pyenv, any key to continue"; Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"; &"./install-pyenv-win.ps1"}
+    pyenv install 3.11
+    pyenv rehash}
     try {
         if ((nvcc --version) -and (vulkaninfo --summary)){
         $pattern = '(^\bc?$)|(^\bv?$)|(^\bcpu?$)'
@@ -483,25 +485,25 @@ function PreReqs{
     New-Item -ItemType File -Path $path\config.txt
     RestoreConfig # Fill in the config.txt file from this release.
     $cfg = "build"; $cfgValue = $build; EditConfig $cfg # Update config with new build value.
+	InstallLlama
     }
-    if (python --version){$python = 1; Write-Host "(*) python is on path"}else{$python = 0; Write-Host "( ) python isn't ready"}
-    if (pyenv){$pyenv = 1; Write-Host "(*) pyenv is ready"}else{$pyenv = 0; Write-Host "( ) pyenv isn't ready"}
-    if (git help -g){$git = 1; Write-Host "(*) git is ready"}else{$git = 0; Write-Host "( ) git isn't ready"}
-    if ($python -and $pyenv -and $git) {if (Test-Path "$path\llama.cpp"){break}else{InstallLlama}}
-    else {
-    if(-not $git){Read-Host "Installing git, any key to continue"; winget install --id Git.Git -e --source winget}
-    if(-not $python){Read-Host "Installing python, any key to continue"; winget install -e --id Python.Python.3.11 --source winget
+}
+
+# Install the environment using git if it was not already done then run it.
+function InstallToolbox{
+    if ($path -notmatch "Llama.Cpp-Toolbox"){
+        try{git clone https://github.com/3Simplex/Llama.Cpp-Toolbox.git}catch{& $rootPath\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1;Exit}
+        while(!(Test-Path $rootPath\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1)){Sleep 5}
+        & $rootPath\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1
+        Exit
     }
-    if(-not $pyenv){Read-Host "Installing pyenv, any key to continue"; Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"; &"./install-pyenv-win.ps1"}
-    pyenv install 3.11
-    pyenv rehash}
+    # The environment exists, continue.
 }
 
 # Install Llama.Cpp for the toolbox on first run.
 function InstallLlama {
     Read-Host "Installing llama.cpp, any key to continue"
-    cd $userDir
-    mkdir LlamaCpp-Toolbox
+    cd $path
 	mkdir $path\Converted
     cd $path
     git clone --progress --recurse-submodules https://github.com/3Simplex/llama.cpp.git
@@ -602,5 +604,8 @@ function SymlinkModel{
 
 # If installed and config.txt exists run the program.
 if (Test-Path "$path\config.txt"){
+    GitIgnore #rebuild the list each init, if something is tracked it will not be ignored.
+    ListScripts #rebuild the list each init
+    ListModels #rebuild the list each init
     $main_form.ShowDialog()}
 else {PreReqs} # If all PreReqs exist run the installer.
