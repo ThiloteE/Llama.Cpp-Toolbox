@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.3"
+$version = "0.23.4"
 ###### FIXME count 3 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -105,7 +105,7 @@ config.txt:This file stores variables to be used for updates & customization. If
 build:master
 repo:3Simplex/llama.cpp.git
 branch:master
-symlinkdir:~\LlamaCpp-Toolbox\Symlinks
+symlinkdir:$path\Symlinks
 show:symlink
 show:model list
 show:convert-hf-to-gguf.py
@@ -487,7 +487,7 @@ function CfgBuild{
     New-Item -ItemType File -Path $path\config.txt
     RestoreConfig # Fill in the config.txt file from this release.
     $cfg = "build"; $cfgValue = $build; EditConfig $cfg # Update config with new build value.
-	if (Test-Path "$path\llama.cpp"){UpdateLlama}else{InstallLlama}
+	if (Test-Path "$path\llama.cpp"){}else{InstallLlama}
     }
 }
 
@@ -496,7 +496,7 @@ function InstallToolbox{
     if ($path -notmatch "Llama.Cpp-Toolbox"){
         git clone https://github.com/3Simplex/Llama.Cpp-Toolbox.git
         while(!(Test-Path $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1)){Sleep 5}
-	rm $path\LlamaCpp-Toolbox.ps1 # Remove the toolbox environment setup script continue with the installation.
+	    rm $path\LlamaCpp-Toolbox.ps1 # Remove the toolbox environment setup script continue with the installation.
         & $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1
         Exit
     }
@@ -508,7 +508,6 @@ function InstallLlama {
     Read-Host "Installing llama.cpp, any key to continue"
     cd $path
 	mkdir $path\Converted
-    cd $path
     git clone --progress --recurse-submodules https://github.com/3Simplex/llama.cpp.git
     pyenv local 3.11
     pip install cmake
