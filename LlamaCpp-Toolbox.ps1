@@ -55,6 +55,7 @@ $main_form.Controls.Add($menuStrip1)
 
 # The directory where LlamaCpp-Toolbox.ps1 is initialized. 
 $path = $PSScriptRoot
+Set-Location $Path # Ensure we are starting on the right path.
 
 # Define model path
 $models = "$path\llama.cpp\models"
