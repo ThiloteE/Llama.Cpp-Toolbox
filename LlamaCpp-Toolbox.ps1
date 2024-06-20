@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.7"
+$version = "0.23.8"
 ###### FIXME count 3 ######
 
 $main_form = New-Object System.Windows.Forms.Form
