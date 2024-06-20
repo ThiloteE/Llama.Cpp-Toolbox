@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.0"
+$version = "0.23.1"
 ###### FIXME count 3 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -458,14 +458,18 @@ function PreReqs{
     if (python --version){$python = 1; Write-Host "(*) python is on path"}else{$python = 0; Write-Host "( ) python isn't ready"}
     if (pyenv){$pyenv = 1; Write-Host "(*) pyenv is ready"}else{$pyenv = 0; Write-Host "( ) pyenv isn't ready"}
     if (git help -g){$git = 1; Write-Host "(*) git is ready"}else{$git = 0; Write-Host "( ) git isn't ready"}
-    if ($python -and $pyenv -and $git) {if (Test-Path "$path\llama.cpp"){break}else{InstallToolbox}}
+    if ($python -and $pyenv -and $git) {if (Test-Path "$path\llama.cpp"){CfgBuild}else{InstallToolbox}}
     else {
     if(-not $git){Read-Host "Installing git, any key to continue"; winget install --id Git.Git -e --source winget;InstallToolbox}
     if(-not $python){Read-Host "Installing python, any key to continue"; winget install -e --id Python.Python.3.11 --source winget
     }
     if(-not $pyenv){Read-Host "Installing pyenv, any key to continue"; Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/pyenv-win/pyenv-win/master/pyenv-win/install-pyenv-win.ps1" -OutFile "./install-pyenv-win.ps1"; &"./install-pyenv-win.ps1"}
     pyenv install 3.11
-    pyenv rehash}
+    pyenv rehash
+    CfgBuild}
+}
+
+function CfgBuild{
     try {
         if ((nvcc --version) -and (vulkaninfo --summary)){
         $pattern = '(^\bc?$)|(^\bv?$)|(^\bcpu?$)'
@@ -485,9 +489,10 @@ function PreReqs{
     New-Item -ItemType File -Path $path\config.txt
     RestoreConfig # Fill in the config.txt file from this release.
     $cfg = "build"; $cfgValue = $build; EditConfig $cfg # Update config with new build value.
-	InstallLlama
+	if (Test-Path "$path\llama.cpp"){UpdateLlama}else{InstallLlama}
     }
 }
+
 
 # Install the environment using git if it was not already done then run it.
 function InstallToolbox{
