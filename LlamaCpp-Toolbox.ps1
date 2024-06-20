@@ -499,7 +499,7 @@ function InstallToolbox{
     if ($path -notmatch "Llama.Cpp-Toolbox"){
         git clone https://github.com/3Simplex/Llama.Cpp-Toolbox.git
         while(!(Test-Path $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1)){Sleep 5}
-		rm Test-Path $path\LlamaCpp-Toolbox.ps1 # Remove the toolbox environment setup script continue with the installation.
+	rm $path\LlamaCpp-Toolbox.ps1 # Remove the toolbox environment setup script continue with the installation.
         & $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1
         Exit
     }
