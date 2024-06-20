@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.4"
+$version = "0.23.5"
 ###### FIXME count 3 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -27,6 +27,7 @@ function ConfirmUpdate(){
     $result = [System.Windows.Forms.MessageBox]::Show($message, $title, $buttons, $icon)
     if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
         if (Test-Path Function:\$update) {&$update}
+        if ($repo -match "3Simplex"){Set-Location $Path; git pull; & $path\LlamaCpp-Toolbox.ps1; Exit}
     }
     if ($result -eq [System.Windows.Forms.DialogResult]::No) {}
 }
