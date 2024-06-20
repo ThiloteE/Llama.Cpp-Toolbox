@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.1"
+$version = "0.23.2"
 ###### FIXME count 3 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -494,12 +494,12 @@ function CfgBuild{
     }
 }
 
-
 # Install the environment using git if it was not already done then run it.
 function InstallToolbox{
     if ($path -notmatch "Llama.Cpp-Toolbox"){
-        try{git clone https://github.com/3Simplex/Llama.Cpp-Toolbox.git}catch{& $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1;Exit}
+        git clone https://github.com/3Simplex/Llama.Cpp-Toolbox.git
         while(!(Test-Path $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1)){Sleep 5}
+		rm Test-Path $path\LlamaCpp-Toolbox.ps1 # Remove the toolbox environment setup script continue with the installation.
         & $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1
         Exit
     }
