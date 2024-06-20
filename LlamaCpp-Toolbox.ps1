@@ -497,9 +497,9 @@ function CfgBuild{
 # Install the environment using git if it was not already done then run it.
 function InstallToolbox{
     if ($path -notmatch "Llama.Cpp-Toolbox"){
-        try{git clone https://github.com/3Simplex/Llama.Cpp-Toolbox.git}catch{& $rootPath\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1;Exit}
-        while(!(Test-Path $rootPath\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1)){Sleep 5}
-        & $rootPath\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1
+        try{git clone https://github.com/3Simplex/Llama.Cpp-Toolbox.git}catch{& $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1;Exit}
+        while(!(Test-Path $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1)){Sleep 5}
+        & $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1
         Exit
     }
     # The environment exists, continue.
