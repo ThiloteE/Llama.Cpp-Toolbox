@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.2"
+$version = "0.23.3"
 ###### FIXME count 3 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -193,13 +193,10 @@ function UpdateConfig{
 }
 #if ($version -ne $cfgVersion){UpdateConfig} # If it needs to be done do it. #Move this into the init when completed.
 
-# Create and update .gitignore
+# Create and update .gitignore if something is tracked it will not be ignored.
 function GitIgnore{
-    # Create the .gitignore file if it doesn't exist
-    if (!(Test-Path -Path "$Path\.gitignore")) {
-        New-Item -ItemType File -Path "$Path\.gitignore" -Force
-    }
     Set-Location $Path
+    New-Item -ItemType File -Path "$Path\.gitignore" -Force # Remove the old file to keep it updated with potential changes to git tracking.
     $newList = @()
     $data = git status --porcelain
     foreach ($item in $data) {
