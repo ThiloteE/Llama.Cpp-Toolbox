@@ -29,7 +29,7 @@ function ConfirmUpdate(){
     if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
         if (Test-Path Function:\$update) {&$update}
         if ($repo -match "3Simplex"){
-            Set-Location $Path; git fetch; $gitstatus = Invoke-Expression "git status"; $TextBox2.Text = "Llama.cpp: "+$TextBox2.Text+"`nLlama.cpp-Toolbox: "+$gitstatus
+            Set-Location $Path; git fetch; $gitstatus = Invoke-Expression "git status"; $TextBox2.Text = "Llama.cpp: "+$TextBox2.Text+"\r\nLlama.cpp-Toolbox: "+$gitstatus
             If ($gitstatus -match "nothing") {
                 $Label3.Text = $Label3.Text+"No changes to Llama.cpp-Toolbox detected."
             }else{git pull; Start-Process PowerShell -ArgumentList $path\LlamaCpp-Toolbox.ps1; [Environment]::Exit(1)}
