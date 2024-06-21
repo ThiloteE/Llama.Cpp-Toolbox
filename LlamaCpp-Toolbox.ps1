@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.12"
+$version = "0.23.13"
 ###### FIXME count 2 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -29,9 +29,10 @@ function ConfirmUpdate(){
     if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
         if (Test-Path Function:\$update) {&$update}
         if ($repo -match "3Simplex"){
-            Set-Location $Path; $gitstatus = Invoke-Expression "git status"; $TextBox2.Text = "Llama.cpp,"+$TextBox2.Text+" & Toolbox,"+$gitstatus
+            Set-Location $Path; $gitstatus = Invoke-Expression "git status"; $TextBox2.Text = "Llama.cpp: "+$TextBox2.Text+"
+            Llama.cpp-Toolbox: "+$gitstatus
             If ($gitstatus -match "nothing") {
-                $Label3.Text = $Label3.Text+"No changes to Toolbox detected."
+                $Label3.Text = $Label3.Text+"No changes to Llama.cpp-Toolbox detected."
             }else{git pull; Start-Process PowerShell -ArgumentList $path\LlamaCpp-Toolbox.ps1; [Environment]::Exit(1)}
         }
     }
@@ -563,7 +564,7 @@ function UpdateLlama{
     If ($gitstatus -match "pull") {# If updates exist get and build them.
         BuildLlama
         }
-    Else {$label3.Text = "No changes to git detected. No update needed."}
+    Else {$label3.Text = "No changes to llama.cpp detected."}
     }
 }
 
