@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.11"
+$version = "0.23.12"
 ###### FIXME count 2 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -19,6 +19,7 @@ $updaterLlama.ShortcutKeyDisplayString="Ctrl+l"
 $updaterLlama.Add_Click({$note = "This could break the Llama.cpp-Toolbox GUI.`n`nUpdate Toolbox gets a recent known working version of llama.cpp.`n`n Are you sure you want to proceed?"
     ;$update = "UpdateLlama";$repo = "ggerganov/llama.cpp.git";ConfirmUpdate}) # Change repo if not already used.
 
+# Update on request with confirmation, then restart GUI when it is updated.
 function ConfirmUpdate(){
     $message = $note
     $title = "Confirm Update"
@@ -27,7 +28,12 @@ function ConfirmUpdate(){
     $result = [System.Windows.Forms.MessageBox]::Show($message, $title, $buttons, $icon)
     if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
         if (Test-Path Function:\$update) {&$update}
-        if ($repo -match "3Simplex"){Set-Location $Path; git pull; Start-Process PowerShell -ArgumentList $path\LlamaCpp-Toolbox.ps1; [Environment]::Exit(1)}
+        if ($repo -match "3Simplex"){
+            Set-Location $Path; $gitstatus = Invoke-Expression "git status"; $TextBox2.Text = "Llama.cpp,"+$TextBox2.Text+" & Toolbox,"+$gitstatus
+            If ($gitstatus -match "nothing") {
+                $Label3.Text = $Label3.Text+"No changes to Toolbox detected."
+            }else{git pull; Start-Process PowerShell -ArgumentList $path\LlamaCpp-Toolbox.ps1; [Environment]::Exit(1)}
+        }
     }
     if ($result -eq [System.Windows.Forms.DialogResult]::No) {}
 }
