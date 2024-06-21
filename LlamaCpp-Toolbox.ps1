@@ -1,6 +1,6 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.10"
-###### FIXME count 3 ######
+$version = "0.23.11"
+###### FIXME count 2 ######
 
 $main_form = New-Object System.Windows.Forms.Form
 $main_form.Text = "Llama.cpp-Toolbox-$version"
@@ -229,20 +229,20 @@ $Button1.Add_Click({
             ElseIf ($selectedScript -match "convert") {ConvertModel}
             ElseIf ($selectedScript -match "gguf-dump.py") {$selectedModel = $ComboBox1.selectedItem;$option = ($ComboBox2.selectedItem -split ' ', 2)[1].Trim();$print=1;ggufDump}
             ElseIf ($selectedScript -match "symlink") {SymlinkModel}
-            else {$Label3.Text = "The script entered was not handled."}
+            else {$Label3.Text = "The script entered:$selectedScript was not handled."}
             }
     $print = 0 # Reset the flag so the screen wont show uncalled results.
     }
 )
 
-# Lable for Status
+# Label  for Status
 $Label2 = New-Object System.Windows.Forms.Label
 $Label2.Text = "Status:"
 $Label2.Location  = New-Object System.Drawing.Point(5,65)
 $Label2.AutoSize = $true
 $main_form.Controls.Add($Label2)
 
-# Lable to display Status
+# Label  to display Status
 $Label3 = New-Object System.Windows.Forms.Label
 $Label3.Text = ""
 $Label3.Location  = New-Object System.Drawing.Point(60,65)
@@ -342,7 +342,6 @@ function Confirm(){
 }
 
 # Convert the selected model from source file.
-#FIXME Invoke-Expression always throws an exception: NativeCommandError
 function ConvertModel{
 	# Navigate to the directory where llama.cpp resides
 	Set-Location -Path $path
@@ -362,9 +361,14 @@ function ConvertModel{
         $label3.Text = "Converting $selectedModel..."
         if ($convertScript -eq "convert_gptj_to_gguf.py"){try{accelerate}catch{pip install accelerate}$command = "python $convertScript $models\$selectedModel"}
         else {$command = "python $convertScript $models\$selectedModel $option"}
-        Invoke-Expression $command
-        if ($Error[0].Exception.Message -match "Error:") {$TextBox2.Text = $Error[0].Exception.Message ; $label3.Text = "Process failed..."}
-        else{        
+        try {
+            & $command # "Try" processing, run the command.
+        } catch [Exception] {
+            $TextBox2.Text = $_.Exception.Message  # Update textbox with error message
+            $label3.Text = "Process failed..."
+        }
+        if ([Exception]){}
+        else{
             $label3.Text = "$selectedModel Converted."
             $TextBox2.Text = "Model successfully exported to $path\Converted\$selectedModel-f16.gguf"
 	        # Move the file to be quantized
@@ -488,7 +492,7 @@ function CfgBuild{
     New-Item -ItemType File -Path $path\config.txt
     RestoreConfig # Fill in the config.txt file from this release.
     $cfg = "build"; $cfgValue = $build; EditConfig $cfg # Update config with new build value.
-	if (Test-Path "$path\llama.cpp"){}else{InstallLlama}
+    if (Test-Path "$path\llama.cpp"){}else{InstallLlama}
     }
 }
 
@@ -497,7 +501,7 @@ function InstallToolbox{
     if ($path -notmatch "Llama.Cpp-Toolbox"){
         git clone https://github.com/3Simplex/Llama.Cpp-Toolbox.git
         while(!(Test-Path $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1)){Sleep 5}
-	    rm $path\LlamaCpp-Toolbox.ps1 # Remove the toolbox environment setup script continue with the installation.
+        rm $path\LlamaCpp-Toolbox.ps1 # Remove the toolbox environment setup script continue with the installation.
         & $path\Llama.Cpp-Toolbox\LlamaCpp-Toolbox.ps1
         Exit
     }
@@ -508,7 +512,7 @@ function InstallToolbox{
 function InstallLlama {
     Read-Host "Installing llama.cpp, any key to continue"
     cd $path
-	mkdir $path\Converted
+    mkdir $path\Converted
     git clone --progress --recurse-submodules https://github.com/3Simplex/llama.cpp.git
     pyenv local 3.11
     pip install cmake
