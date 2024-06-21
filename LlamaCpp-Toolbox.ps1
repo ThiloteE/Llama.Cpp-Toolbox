@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.9"
+$version = "0.23.10"
 ###### FIXME count 3 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -457,7 +457,7 @@ function PreReqs{
     if (python --version){$python = 1; Write-Host "(*) python is on path"}else{$python = 0; Write-Host "( ) python isn't ready"}
     if (pyenv){$pyenv = 1; Write-Host "(*) pyenv is ready"}else{$pyenv = 0; Write-Host "( ) pyenv isn't ready"}
     if (git help -g){$git = 1; Write-Host "(*) git is ready"}else{$git = 0; Write-Host "( ) git isn't ready"}
-    if ($python -and $pyenv -and $git) {if (Test-Path "$path\llama.cpp"){CfgBuild}else{InstallToolbox}}
+    if ($python -and $pyenv -and $git) {if (Test-Path "$path\llama.cpp"){}else{InstallToolbox}}
     else {
     if(-not $git){Read-Host "Installing git, any key to continue"; winget install --id Git.Git -e --source winget;InstallToolbox}
     if(-not $python){Read-Host "Installing python, any key to continue"; winget install -e --id Python.Python.3.11 --source winget
