@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.15"
+$version = "0.23.16"
 ###### FIXME count 2 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -274,7 +274,7 @@ $Button.Add_Click({
         # Check for any updates using Git.
         $gitstatus = Invoke-Expression "git status"
         $TextBox2.Text = $gitstatus
-        If ($gitstatus -match "nothing") {
+        If ($gitstatus -match "up to date") {
         $Label3.Text = "No changes to git detected."
             }
         Else {
