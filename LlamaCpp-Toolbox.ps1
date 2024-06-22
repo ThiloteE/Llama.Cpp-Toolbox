@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.17"
+$version = "0.23.18"
 ###### FIXME count 2 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -32,7 +32,7 @@ function ConfirmUpdate(){
             Set-Location $Path; git fetch; $gitstatus = Invoke-Expression "git status"
             $TextBox2.Text = "Llama.cpp: "+$TextBox2.Text + [System.Environment]::NewLine  + [System.Environment]::NewLine +  "Llama.cpp-Toolbox: "+$gitstatus
             If ($gitstatus -match "up to date") {
-                $Label3.Text = $Label3.Text+"No changes to Llama.cpp-Toolbox detected."
+                $Label3.Text = $Label3.Text+" & No changes to Llama.cpp-Toolbox detected."
             }else{git pull; Start-Process PowerShell -ArgumentList $path\LlamaCpp-Toolbox.ps1; [Environment]::Exit(1)}
         }
     }
@@ -560,7 +560,7 @@ function UpdateLlama{
     } else {
     $fetch = Invoke-Expression "git fetch" # Check for any updates using Git.
     $gitstatus = Invoke-Expression "git status"
-    $TextBox2.Text = $gitstatus -replace '|', [System.Environment]::NewLine
+    $TextBox2.Text = $gitstatus
     If ($gitstatus -match "pull") {# If updates exist get and build them.
         BuildLlama
         }
@@ -573,7 +573,7 @@ function BuildLlama{
     $cfg = "build"; $build = RetrieveConfig $cfg # get-set the flag for $build.
 	$label3.Text = "New updates received. Updating, building and configuring..."
     $gitstatus = Invoke-Expression "git pull origin"
-    $TextBox2.Text = $gitstatus
+    $TextBox2.Text = $gitstatus -replace '|', [System.Environment]::NewLine # Format the text from git pull.
     if($build -eq 'v') {
  		cd $path\llama.cpp
 		rd -r build
