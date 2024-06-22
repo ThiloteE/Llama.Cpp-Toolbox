@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.16"
+$version = "0.23.17"
 ###### FIXME count 2 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -560,7 +560,7 @@ function UpdateLlama{
     } else {
     $fetch = Invoke-Expression "git fetch" # Check for any updates using Git.
     $gitstatus = Invoke-Expression "git status"
-    $TextBox2.Text = $gitstatus
+    $TextBox2.Text = $gitstatus -replace '|', [System.Environment]::NewLine
     If ($gitstatus -match "pull") {# If updates exist get and build them.
         BuildLlama
         }
