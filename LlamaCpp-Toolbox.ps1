@@ -1,12 +1,13 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.19"
-###### FIXME count 2 ######
+$version = "0.23.20"
+###### FIXME count 1 ######
 
 $main_form = New-Object System.Windows.Forms.Form
 $main_form.Text = "Llama.cpp-Toolbox-$version"
 $main_form.Width = 750
 $main_form.Height = 300
-$main_form.AutoSize = $true
+$main_form.MinimumSize = New-Object System.Drawing.Size(750, 300)
+$main_form.MaximumSize = New-Object System.Drawing.Size(750, 1000)
 
 $menuStrip1 = New-object system.windows.forms.menustrip
 $fileMenu = New-Object System.Windows.Forms.ToolStripMenuItem
@@ -287,10 +288,9 @@ $Button.Add_Click({
     }
 )
 
-#FIXME stretch with window.
 # Textbox for output.
 $TextBox2 = New-Object System.Windows.Forms.TextBox
-$TextBox2.Anchor = "Top, Left, Bottom"  # Resize with the form, does not shrink FIXME
+$TextBox2.Anchor = "Top, Left, Bottom"  # Resize with the form
 $TextBox2.Multiline = $true
 $TextBox2.ScrollBars = [System.Windows.Forms.ScrollBars]::Vertical
 $TextBox2.Location  = New-Object System.Drawing.Point(10,120)
