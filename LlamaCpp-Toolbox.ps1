@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.23.20"
+$version = "0.24.0"
 ###### FIXME count 1 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -575,7 +575,7 @@ function BuildLlama{
     $gitstatus = Invoke-Expression "git pull origin"
     $gitstatusf = $gitstatus -replace '\|', [System.Environment]::NewLine # Format the text from git pull.
     $timestamp = Get-Date -Format "yyyyMMddHHmmss"
-    $gitstatusf | Out-File -FilePath "$path\logs\$timestamp-$version-llamaCpp.txt"
+    $gitstatusf | Out-File -FilePath "$path\logs\$timestamp-$version-llamaCpp.txt" -Force
     $TextBox2.Text = $gitstatusf
     if($build -eq 'v') {
  		cd $path\llama.cpp
