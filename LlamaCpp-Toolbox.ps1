@@ -573,7 +573,10 @@ function BuildLlama{
     $cfg = "build"; $build = RetrieveConfig $cfg # get-set the flag for $build.
 	$label3.Text = "New updates received. Updating, building and configuring..."
     $gitstatus = Invoke-Expression "git pull origin"
-    $TextBox2.Text = $gitstatus -replace '\|', [System.Environment]::NewLine # Format the text from git pull.
+    $gitstatusf = $gitstatus -replace '\|', [System.Environment]::NewLine # Format the text from git pull.
+    $timestamp = Get-Date -Format "yyyyMMddHHmmss"
+    $gitstatusf | Out-File -FilePath "$path\logs\$timestamp-$version-llamaCpp.txt"
+    $TextBox2.Text = $gitstatusf
     if($build -eq 'v') {
  		cd $path\llama.cpp
 		rd -r build
