@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.24.0"
+$version = "0.24.1"
 ###### FIXME count 1 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -532,17 +532,17 @@ function InstallLlama {
     if ($build -eq 'v') {
         cd $path\llama.cpp
         mkdir build
-        cmake -B .\build -DLLAMA_VULKAN=ON -DLLAMA_NATIVE=ON
+        cmake -B .\build -DGGML_VULKAN=ON -DGGML_NATIVE=ON
         cmake --build build --config Release -j 8
     } elseif ($build -eq 'c') {
         cd $path\llama.cpp
         mkdir build
-        cmake -B .\build -DLLAMA_CUDA=ON -DLLAMA_NATIVE=ON
+        cmake -B .\build -DGGML_CUDA=ON -DGGML_NATIVE=ON
         cmake --build build --config Release -j 8
     } elseif ($build -eq 'cpu') {
         cd $path\llama.cpp
         mkdir build
-        cmake -B .\build -DLLAMA_NATIVE=ON
+        cmake -B .\build -DGGML_NATIVE=ON
         cmake --build build --config Release -j 8
     }
 }
@@ -581,19 +581,19 @@ function BuildLlama{
  		cd $path\llama.cpp
 		rd -r build
 		mkdir build
-		cmake -B .\build -DLLAMA_VULKAN=ON -DLLAMA_NATIVE=ON
+		cmake -B .\build -DGGML_VULKAN=ON -DGGML_NATIVE=ON
 		cmake --build build --config Release -j 8
 	} elseif ($build -eq 'c') {
 		cd $path\llama.cpp
 		rd -r build
 		mkdir build
-		cmake -B .\build -DLLAMA_CUDA=ON -DLLAMA_NATIVE=ON
+		cmake -B .\build -DGGML_CUDA=ON -DGGML_NATIVE=ON
 		cmake --build build --config Release -j 8
 	} elseif ($build -eq 'cpu') {
 		cd $path\llama.cpp
 		rd -r build
 		mkdir build
-		cmake -B .\build -DLLAMA_NATIVE=ON
+		cmake -B .\build -DGGML_NATIVE=ON
 		cmake --build build --config Release -j 8
 	}
 $label3.Text = "Updating, building and configuring completed."
