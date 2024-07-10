@@ -393,8 +393,9 @@ function QuantizeModel{
         if ($selectedModel -match "-f32"){$renameModel = ($ComboBox1.selectedItem -split "-f32", 2)[0].Trim()}
         $option = ($ComboBox2.selectedItem  -split ' ', 2)[1].Trim()
         $label3.Text = "Quantizing $selectedModel..."
-        try { & ".\llama-quantize.exe $path\Converted\$selectedModel $path\Converted\$renameModel-$option.gguf $option"
-        } catch [Exception] {$label3.Text = "Quantizing failed...";$TextBox2.Text = $_.Exception.Message}else{$label3.Text = "$selectedModel Quantized."}
+        try { & .\llama-quantize.exe $path\Converted\$selectedModel $path\Converted\$renameModel-$option.gguf $option
+        } catch [Exception] {$label3.Text = "Quantizing failed...";$TextBox2.Text = $_.Exception.Message}
+        if ([Exception]){}else{$label3.Text = "$selectedModel Quantized."}
         ListModels}
     else{$label3.Text = "Quantizing failed...";$TextBox2.Text = "You must select a .gguf model, either -f16 or -f32"}
 }
