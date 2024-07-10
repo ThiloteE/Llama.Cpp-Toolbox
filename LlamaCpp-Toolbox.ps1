@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.24.1"
+$version = "0.24.2"
 ###### FIXME count 1 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -117,10 +117,10 @@ branch¦master
 symlinkdir¦$path\Symlinks
 show¦symlink
 show¦model list
-show¦convert-hf-to-gguf.py
+show¦convert_hf_to_gguf.py
 show¦convert_gptj_to_gguf.py
-show¦convert-legacy-llama.py
-show¦convert-legacy-llama.py bpe
+show¦convert_legacy_llama.py
+show¦convert_legacy_llama.py bpe
 show¦llama-quantize.exe Q2_K
 show¦llama-quantize.exe Q2_K_S
 show¦llama-quantize.exe Q3_K
@@ -151,12 +151,12 @@ show¦llama-quantize.exe IQ2_S
 show¦llama-quantize.exe IQ2_M
 show¦llama-quantize.exe IQ1_S
 show¦llama-quantize.exe IQ1_M
-show¦gguf-dump.py dump
-show¦gguf-dump.py keys
-show¦gguf-dump.py architecture
-show¦gguf-dump.py context_length
-show¦gguf-dump.py head_count
-show¦gguf-dump.py chat_template"
+show¦gguf_dump.py dump
+show¦gguf_dump.py keys
+show¦gguf_dump.py architecture
+show¦gguf_dump.py context_length
+show¦gguf_dump.py head_count
+show¦gguf_dump.py chat_template"
 
 # Restore the config text.
 function RestoreConfig{Add-Content -Path $path\config.txt -Value $cfgText} # Regenerate config if deleted.
@@ -235,7 +235,7 @@ $Button1.Add_Click({
         Else {If ($selectedScript -eq $null) {$Label3.Text = "Select a script to process the LLM."}
             ElseIf ($selectedScript -match "llama-quantize.exe") {QuantizeModel}
             ElseIf ($selectedScript -match "convert") {ConvertModel}
-            ElseIf ($selectedScript -match "gguf-dump.py") {$selectedModel = $ComboBox1.selectedItem;$option = ($ComboBox2.selectedItem -split ' ', 2)[1].Trim();$print=1;ggufDump}
+            ElseIf ($selectedScript -match "gguf_dump.py") {$selectedModel = $ComboBox1.selectedItem;$option = ($ComboBox2.selectedItem -split ' ', 2)[1].Trim();$print=1;ggufDump}
             ElseIf ($selectedScript -match "symlink") {SymlinkModel}
             else {$Label3.Text = "The script entered:$selectedScript was not handled."}
             }
@@ -243,14 +243,14 @@ $Button1.Add_Click({
     }
 )
 
-# Label  for Status
+# Label for Status
 $Label2 = New-Object System.Windows.Forms.Label
 $Label2.Text = "Status:"
 $Label2.Location  = New-Object System.Drawing.Point(5,65)
 $Label2.AutoSize = $true
 $main_form.Controls.Add($Label2)
 
-# Label  to display Status
+# Label to display Status
 $Label3 = New-Object System.Windows.Forms.Label
 $Label3.Text = ""
 $Label3.Location  = New-Object System.Drawing.Point(60,65)
@@ -356,20 +356,20 @@ function ConvertModel{
 	.\venv\Scripts\activate
 	# Select the model to convert.
     $selectedModel = $ComboBox1.selectedItem # Selected LLM from dropdown list.
-    if ($ComboBox2.selectedItem -match "bpe"){$option = "--outtype f16 --vocab-type bpe"}
-    else{$option='--outtype f16'}
+    if ($ComboBox2.selectedItem -match "bpe"){$option = "--vocab-type bpe"}
+    else{$option=''} # did they burn --outtype? It's still an option but stopped working.
     $convertScript = ($ComboBox2.selectedItem -split ' ', 2)[0].Trim() # Selected script for conversion.
     if (Test-Path $path\Converted\$selectedModel-f16.gguf){$note = "Existing file will be overwritten.";$halt = Confirm} # If the file exists then ask to overwrite.
     if (!$halt){
         if($halt -eq 0){Remove-Item $path\Converted\$selectedModel-f16.gguf}
         # Navigate to the directory containing conversion scripts.
-        if ($convertScript -eq "convert-legacy-llama.py"){Set-Location $path\llama.cpp\examples}
+        if ($convertScript -eq "convert_legacy_llama.py"){Set-Location $path\llama.cpp\examples}
         else{Set-Location $path\llama.cpp}
         $label3.Text = "Converting $selectedModel..."
         if ($convertScript -eq "convert_gptj_to_gguf.py"){try{accelerate}catch{pip install accelerate}$command = "python $convertScript $models\$selectedModel"}
-        else {$command = "python $convertScript $models\$selectedModel $option"}
+        else {$command = "python $convertScript $models\$selectedModel --outfile $path\Converted\$selectedModel-f16.gguf $option"}
         try {
-            & $command # "Try" processing, run the command.
+            Invoke-Expression -Command "$command" # "Try" processing, run the command.
         } catch [Exception] {
             $TextBox2.Text = $_.Exception.Message  # Update textbox with error message
             $label3.Text = "Process failed..."
@@ -378,8 +378,6 @@ function ConvertModel{
         else{
             $label3.Text = "$selectedModel Converted."
             $TextBox2.Text = "Model successfully exported to $path\Converted\$selectedModel-f16.gguf"
-	        # Move the file to be quantized
-	        Move-Item $path\llama.cpp\models\$selectedModel\ggml-model-f16.gguf $path\Converted\$selectedModel-f16.gguf
             ListModels}
     }
     deactivate # Deactivate (venv) python environment.
@@ -416,9 +414,9 @@ function ModelList{
     $TextBox2.Text = $list
 }
 
-# Pull metadata from any gguf using the gguf-dump script.
+# Pull metadata from any gguf using the gguf_dump script.
 function ggufDump{
-    # gguf-dump needs a $option and a $selectedModel to fucntion, send that when calling ggufDump.
+    # gguf_dump needs a $option and a $selectedModel to fucntion, send that when calling ggufDump.
     # use ($print = 1) if you want it to update the gui with data.
     if ($selectedModel -match ".gguf"){
         # Navigate to the directory where llama.cpp resides
@@ -426,18 +424,18 @@ function ggufDump{
         # Activate the virtual environment.
         .\venv\Scripts\activate
         # Path to the Python script
-        $scriptPath = "$path\llama.cpp\gguf-py\scripts\gguf-dump.py"
+        $scriptPath = "$path\llama.cpp\gguf-py\scripts\gguf_dump.py"
 
         # Target directory containing GGUF files
         $ggufDir = "$path\Converted\"
-        #$selectedModel = $ComboBox1.selectedItem #selectedModel is set where gguf-dump is called. # Selected LLM from dropdown list. 
-        #$option = ($ComboBox2.selectedItem -split ' ', 2)[1].Trim() #option is set where gguf-dump is called.
+        #$selectedModel = $ComboBox1.selectedItem #selectedModel is set where gguf_dump is called. # Selected LLM from dropdown list. 
+        #$option = ($ComboBox2.selectedItem -split ' ', 2)[1].Trim() #option is set where gguf_dump is called.
     
         # Build the full path to the GGUF file
         $filePath = Join-Path $ggufDir $selectedModel
 
         # Run the Python script with JSON output and capture the result
-        $fileContent = Python $scriptPath --json --no-tensors $filePath
+        $fileContent = python $scriptPath --json --no-tensors $filePath
     
         $jsonData = ConvertFrom-Json -InputObject $fileContent
         $metadata = $jsonData.metadata
@@ -448,7 +446,7 @@ function ggufDump{
                 $value = $metadata.$matchingKey.value -replace "\n", "\n"}}}
             catch{
                 if ($option -eq "dump"){
-                $label3Text = "gguf-dump..."
+                $label3Text = "gguf_dump..."
                 $value = $fileContent
                 } elseif ($option -eq "keys"){
                 $label3Text = "Metadata keys..."
