@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.24.2"
+$version = "0.24.3"
 ###### FIXME count 1 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -374,7 +374,7 @@ function ConvertModel{
             $TextBox2.Text = $_.Exception.Message  # Update textbox with error message
             $label3.Text = "Process failed..."
         }
-        if ([Exception]){}
+        if ($_.Exception.Message){}
         else{
             $label3.Text = "$selectedModel Converted."
             $TextBox2.Text = "Model successfully exported to $path\Converted\$selectedModel-f16.gguf"
@@ -395,7 +395,7 @@ function QuantizeModel{
         $label3.Text = "Quantizing $selectedModel..."
         try { & .\llama-quantize.exe $path\Converted\$selectedModel $path\Converted\$renameModel-$option.gguf $option
         } catch [Exception] {$label3.Text = "Quantizing failed...";$TextBox2.Text = $_.Exception.Message}
-        if ([Exception]){}else{$label3.Text = "$selectedModel Quantized."}
+        if ($_.Exception.Message){}else{$label3.Text = "$selectedModel Quantized."}
         ListModels}
     else{$label3.Text = "Quantizing failed...";$TextBox2.Text = "You must select a .gguf model, either -f16 or -f32"}
 }
