@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.24.4"
+$version = "0.24.5"
 ###### FIXME count 1 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -269,7 +269,7 @@ $Button.Add_Click({
     # Function to update from list of LLMs.
     $label3.Text = "";$TextBox2.Text = "" # Clear the text.
     $selectedDirectory = $ComboBox1.selectedItem # Selected LLM from dropdown list.
-    If ($selectedDirectory -eq $null) {$Label3.Text = "Select LLM to process."}
+    If ($selectedDirectory -eq $null) {$Label3.Text = "List updated, select an LLM to check git status."}
     Else {
         Set-Location $models\$selectedDirectory
         # Check for any updates using Git.
