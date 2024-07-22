@@ -1,5 +1,5 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.24.3"
+$version = "0.24.4"
 ###### FIXME count 1 ######
 
 $main_form = New-Object System.Windows.Forms.Form
@@ -285,7 +285,7 @@ $Button.Add_Click({
         $Label3.Text =  'Model updated!'
             }
         }
-    }
+    ListModels}
 )
 
 # Textbox for output.
@@ -395,8 +395,11 @@ function QuantizeModel{
         $label3.Text = "Quantizing $selectedModel..."
         try { & .\llama-quantize.exe $path\Converted\$selectedModel $path\Converted\$renameModel-$option.gguf $option
         } catch [Exception] {$label3.Text = "Quantizing failed...";$TextBox2.Text = $_.Exception.Message}
-        if ($_.Exception.Message){}else{$label3.Text = "$selectedModel Quantized."}
-        ListModels}
+        if ($_.Exception.Message){}
+        else{$label3.Text = "$selectedModel Quantized."
+            $TextBox2.Text = "Model successfully exported to $path\Converted\$renameModel-$option.gguf"
+            ListModels}
+        }
     else{$label3.Text = "Quantizing failed...";$TextBox2.Text = "You must select a .gguf model, either -f16 or -f32"}
 }
 
