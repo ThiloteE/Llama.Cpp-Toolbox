@@ -1,6 +1,9 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.24.5"
-###### FIXME count 1 ######
+$version = "0.24.6"
+##### FIXME count 1                  #####
+### Update Transformers, llama3.1      ###
+## also recurse submodule updates       ##
+# change path to gptj, $path\lib\Scripts #
 
 $main_form = New-Object System.Windows.Forms.Form
 $main_form.Text = "Llama.cpp-Toolbox-$version"
