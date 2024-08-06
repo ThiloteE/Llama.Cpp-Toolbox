@@ -1,6 +1,7 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.24.6"
+$version = "0.24.7"
 ##### FIXME count 1                  #####
+#### Add Help > About > Information   ####
 ### Update Transformers, llama3.1      ###
 ## also recurse submodule updates       ##
 # change path to gptj, $path\lib\Scripts #
@@ -64,6 +65,10 @@ $menuStrip1.Items.Add($helpMenu)
 $helpMenu.DropDownItems.AddRange(@($aboutItem))
 
 $main_form.Controls.Add($menuStrip1)
+
+# Get the core count for building, and inference.
+#$NumberOfCores = (Get-CimInstance –ClassName Win32_Processor).NumberOfCores # Slower method, use only with a cfg entry.
+$NumberOfCores = [Environment]::ProcessorCount / 2 # Faster but maybe not best method, instant result.
 
 # The directory where LlamaCpp-Toolbox.ps1 is initialized. 
 $path = $PSScriptRoot
@@ -538,17 +543,17 @@ function InstallLlama {
         cd $path\llama.cpp
         mkdir build
         cmake -B .\build -DGGML_VULKAN=ON -DGGML_NATIVE=ON
-        cmake --build build --config Release -j 8
+        cmake --build build --config Release -j $NumberOfCores
     } elseif ($build -eq 'c') {
         cd $path\llama.cpp
         mkdir build
         cmake -B .\build -DGGML_CUDA=ON -DGGML_NATIVE=ON
-        cmake --build build --config Release -j 8
+        cmake --build build --config Release -j $NumberOfCores
     } elseif ($build -eq 'cpu') {
         cd $path\llama.cpp
         mkdir build
         cmake -B .\build -DGGML_NATIVE=ON
-        cmake --build build --config Release -j 8
+        cmake --build build --config Release -j $NumberOfCores
     }
 }
 
@@ -587,19 +592,19 @@ function BuildLlama{
 		rd -r build
 		mkdir build
 		cmake -B .\build -DGGML_VULKAN=ON -DGGML_NATIVE=ON
-		cmake --build build --config Release -j 8
+		cmake --build build --config Release -j $NumberOfCores
 	} elseif ($build -eq 'c') {
 		cd $path\llama.cpp
 		rd -r build
 		mkdir build
 		cmake -B .\build -DGGML_CUDA=ON -DGGML_NATIVE=ON
-		cmake --build build --config Release -j 8
+		cmake --build build --config Release -j $NumberOfCores
 	} elseif ($build -eq 'cpu') {
 		cd $path\llama.cpp
 		rd -r build
 		mkdir build
 		cmake -B .\build -DGGML_NATIVE=ON
-		cmake --build build --config Release -j 8
+		cmake --build build --config Release -j $NumberOfCores
 	}
 $label3.Text = "Updating, building and configuring completed."
 }
