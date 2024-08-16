@@ -1,10 +1,10 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.24.7"
-##### FIXME count 1                  #####
-#### Add Help > About > Information   ####
-### Update Transformers, llama3.1      ###
-## also recurse submodule updates       ##
-# change path to gptj, $path\lib\Scripts #
+$version = "0.25.0"
+# todo #FIXME count 1
+# todo # Add Help > About > Information
+# todo # Update Transformers, llama3.1
+# todo # also recurse submodule updates
+# todo # change path to gptj, $path\lib\Scripts
 
 $main_form = New-Object System.Windows.Forms.Form
 $main_form.Text = "Llama.cpp-Toolbox-$version"
@@ -119,6 +119,7 @@ function ListScripts {
 # The config text for this release.
 $cfgText = "Llama.Cpp-Toolbox¦$version
 config.txt¦This file stores variables to be used for updates & customization. If this file is modified incorrectly, regret happens.
+help¦Separate arguments with a space like this...llama-quantize.exe Q4_0 --leave-output-tensor
 build¦master
 repo¦3Simplex/llama.cpp.git
 branch¦master
@@ -392,24 +393,50 @@ function ConvertModel{
 }
 
 # Quantize the selected model from f16 or f32.
-function QuantizeModel{
-	# Navigate to the build directory where llama-quantize.exe resides
-	Set-Location -Path $path\llama.cpp\build\bin\Release
-    $selectedModel = $ComboBox1.selectedItem # Selected LLM from dropdown list.
-    if ($selectedModel -match ".gguf"){
+function QuantizeModel {
+    # Navigate to the build directory where llama-quantize.exe resides
+    Set-Location -Path $path\llama.cpp\build\bin\Release
+
+    # Get selected model from dropdown list 1 ($ComboBox1)
+    $selectedModel = $ComboBox1.selectedItem
+    
+    if ($selectedModel -match ".gguf") {
+        # Get the new models name and prepare it to be used with the option later.
         if ($selectedModel -match "-f16"){$renameModel = ($ComboBox1.selectedItem -split "-f16", 2)[0].Trim()}
         if ($selectedModel -match "-f32"){$renameModel = ($ComboBox1.selectedItem -split "-f32", 2)[0].Trim()}
-        $option = ($ComboBox2.selectedItem  -split ' ', 2)[1].Trim()
-        $label3.Text = "Quantizing $selectedModel..."
-        try { & .\llama-quantize.exe $path\Converted\$selectedModel $path\Converted\$renameModel-$option.gguf $option
-        } catch [Exception] {$label3.Text = "Quantizing failed...";$TextBox2.Text = $_.Exception.Message}
-        if ($_.Exception.Message){}
-        else{$label3.Text = "$selectedModel Quantized."
-            $TextBox2.Text = "Model successfully exported to $path\Converted\$renameModel-$option.gguf"
-            ListModels}
+        # Extract parts from the selected item in the combobox.
+        $executable = ($ComboBox2.selectedItem).Split(' ')[0] # The executable to run.
+        $outtype = ($ComboBox2.selectedItem).Split(' ')[1] # The outtype which will also be used in the name.
+        $nthreads = [Environment]::ProcessorCount #$NumberOfCores
+        $args = "" # Empty array to be filled with all the args the user wants to apply.
+            
+        # Get arguments prepared
+        foreach ($arg in (($ComboBox2.selectedItem).Split(' '))){
+            if (($arg -ne $executable)-and($arg -ne $outtype)) {
+                $args += "$arg "
+            }
         }
-    else{$label3.Text = "Quantizing failed...";$TextBox2.Text = "You must select a .gguf model, either -f16 or -f32"}
+        # Write-Host .\llama-quantize.exe $args.Trim() $path\Converted\$selectedModel $path\Converted\$renameModel-$outtype.gguf $outtype $nthreads # debug
+        # Quantize the selected model with the new name, selected option and arguments.
+        try { & .\llama-quantize.exe $args.Trim() $path\Converted\$selectedModel $path\Converted\$renameModel-$outtype.gguf $outtype $nthreads}
+        catch [Exception] {$label3.Text = "Quantizing failed...";$TextBox2.Text = $_.Exception.Message}
+
+        # Update the GUI
+        if ($_.Exception.Message) {}
+        else {
+            $label3.Text = "$selectedModel Quantized using the following args: "+$args.Trim()+" $outtype $nthreads"
+            $TextBox2.Text = "Model successfully exported to $path\Converted\$renameModel-$outtype.gguf"
+            ListModels
+        }
+    }
+
+    # If the selected model was not a gguf we can't do anything with it!
+    else {
+        $label3.Text = "Quantizing failed..."
+        $TextBox2.Text = "You must select a .gguf model, either -f16 or -f32"
+    }
 }
+
 
 # Get a list of models.
 function ModelList{
