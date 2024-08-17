@@ -612,6 +612,7 @@ function BuildLlama{
     $gitstatus = Invoke-Expression "git pull origin"
     $gitstatusf = $gitstatus -replace '\|', [System.Environment]::NewLine # Format the text from git pull.
     $timestamp = Get-Date -Format "yyyyMMddHHmmss"
+    if (Test-Path $path\logs){}else{mkdir $path\logs}
     $gitstatusf | Out-File -FilePath "$path\logs\$timestamp-$version-llamaCpp.txt" -Force
     $TextBox2.Text = $gitstatusf
     if($build -eq 'v') {
