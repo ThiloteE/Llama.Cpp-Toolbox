@@ -1,7 +1,7 @@
 ﻿Add-Type -AssemblyName System.Windows.Forms
-$version = "0.25.0"
+$version = "0.25.1"
 # todo #FIXME count 1
-# todo # Add Help > About > Information
+# todo # Add Help > About > Information - `git rev-parse --verify HEAD` for toolbox and llama.cpp add versions for transformers
 # todo # Update Transformers, llama3.1
 # todo # also recurse submodule updates
 # todo # change path to gptj, $path\lib\Scripts
@@ -408,7 +408,7 @@ function QuantizeModel {
         $executable = ($ComboBox2.selectedItem).Split(' ')[0] # The executable to run.
         $outtype = ($ComboBox2.selectedItem).Split(' ')[1] # The outtype which will also be used in the name.
         $nthreads = [Environment]::ProcessorCount #$NumberOfCores
-        $args = "" # Empty array to be filled with all the args the user wants to apply.
+        $args = "" # Empty list to be filled with all the args the user wants to apply.
             
         # Get arguments prepared
         foreach ($arg in (($ComboBox2.selectedItem).Split(' '))){
