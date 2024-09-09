@@ -12,10 +12,10 @@ $models = "$path\llama.cpp\models" # Define model path
 $NumberOfCores = [Environment]::ProcessorCount / 2 # Faster but maybe not best method, instant result.
 #$NumberOfCores = (Get-CimInstance –ClassName Win32_Processor).NumberOfCores # Slower method, use only with a cfg entry.
 
-Import-Module C:\Users\3simplex\Studio\LCT-M\lib\modules\Toolbox-GUI.psm1 -Verbose
+Import-Module C:\Users\3simplex\Studio\LCT-M\lib\modules\Toolbox-Config.psm1 -Verbose
 Import-Module C:\Users\3simplex\Studio\LCT-M\lib\modules\Llama-Chat.psm1 -Verbose
 Import-Module C:\Users\3simplex\Studio\LCT-M\lib\modules\Toolbox-Functions.psm1 -Verbose
-Import-Module C:\Users\3simplex\Studio\LCT-M\lib\modules\Toolbox-Config.psm1 -Verbose
+Import-Module C:\Users\3simplex\Studio\LCT-M\lib\modules\Toolbox-GUI.psm1 -Verbose
 
 # Determine if the program should be run or installed.
 function Main {

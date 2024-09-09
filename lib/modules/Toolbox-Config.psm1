@@ -57,19 +57,6 @@ show¦gguf_dump.py context_length
 show¦gguf_dump.py block_count
 show¦gguf_dump.py chat_template"
 
-# Update the config text when new version is retrieved.
-#FIXME edit config on update. Goodluck.
-$cfg = "Llama.cpp-Toolbox"; $cfgVersion = RetrieveConfig $cfg # get-set the flag for version.
-$Alines = $cfgText -split [Environment]::NewLine
-function UpdateConfig{
-    foreach ($line in $Alines){
-        $cfg = $line.Split('¦')[0].Trim();
-        $cfgValue = $line.Split('¦')[1].Trim();
-        EditConfig $cfg
-        }
-}
-#if ($version -ne $cfgVersion){UpdateConfig} # If it needs to be done do it. #Move this into the init when completed.
-
 # Restore the config text.
 function RestoreConfig{Add-Content -Path $path\config.txt -Value $cfgText} # Regenerate config if deleted.
 
@@ -125,5 +112,18 @@ function CfgBuild{
     if (Test-Path "$path\llama.cpp"){}else{InstallLlama}
     }
 }
+
+# Update the config text when new version is retrieved.
+#FIXME edit config on update. Goodluck.
+$cfg = "Llama.cpp-Toolbox"; $cfgVersion = RetrieveConfig $cfg # get-set the flag for version.
+$Alines = $cfgText -split [Environment]::NewLine
+function UpdateConfig{
+    foreach ($line in $Alines){
+        $cfg = $line.Split('¦')[0].Trim();
+        $cfgValue = $line.Split('¦')[1].Trim();
+        EditConfig $cfg
+        }
+}
+#if ($version -ne $cfgVersion){UpdateConfig} # If it needs to be done do it. #Move this into the init when completed.
 
 Export-ModuleMember -Function * -Variable * -Alias *
