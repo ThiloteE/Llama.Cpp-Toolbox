@@ -58,10 +58,10 @@ show¦gguf_dump.py block_count
 show¦gguf_dump.py chat_template"
 
 # Restore the config text.
-function RestoreConfig{Add-Content -Path $path\config.txt -Value $cfgText} # Regenerate config if deleted.
+function RestoreConfig {Add-Content -Path $path\config.txt -Value $cfgText} # Regenerate config if deleted.
 
 # Retrieve a specific value within config.
-function RetrieveConfig($cfg){
+function RetrieveConfig ($cfg) {
     $lines = Get-Content -Path $path\config.txt
     foreach ($line in $lines) {
         if ($cfg -eq $line.Split('¦')[0].Trim()) {
@@ -72,7 +72,7 @@ function RetrieveConfig($cfg){
 }
 
 # Change a specific value within config.
-function EditConfig($cfg){
+function EditConfig ($cfg) {
     $lines = Get-Content -Path $path\config.txt
     foreach ($line in $lines) {
         if ($line.StartsWith($cfg+'¦')) {
@@ -89,7 +89,7 @@ function EditConfig($cfg){
 }
 
 # Set the build flags for the config.
-function CfgBuild{
+function CfgBuild {
     try {
         if ((nvcc --version) -and (vulkaninfo --summary)){
         $pattern = '(^\bc?$)|(^\bv?$)|(^\bcpu?$)'
@@ -117,7 +117,7 @@ function CfgBuild{
 #FIXME edit config on update. Goodluck.
 $cfg = "Llama.cpp-Toolbox"; $cfgVersion = RetrieveConfig $cfg # get-set the flag for version.
 $Alines = $cfgText -split [Environment]::NewLine
-function UpdateConfig{
+function UpdateConfig {
     foreach ($line in $Alines){
         $cfg = $line.Split('¦')[0].Trim();
         $cfgValue = $line.Split('¦')[1].Trim();

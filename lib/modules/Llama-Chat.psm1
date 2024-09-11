@@ -14,7 +14,7 @@
 # Llama-Chat version
 $Llama_Chat_Ver = 0.1.0
 
-function LlamaChat{
+function LlamaChat {
     # Extract parts from the selected item in the combobox.
     $executable = ($ComboBox2.selectedItem).Split(' ')[0] # The executable to run.
     $nthreads = [Environment]::ProcessorCount #$NumberOfCores
