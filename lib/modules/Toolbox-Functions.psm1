@@ -200,7 +200,7 @@ function UpdateToolbox {
         $log_name = "Toolbox" # Send this to Log-GitUpdate for the file name.
         $gitstatus = Invoke-Expression "git pull"
         Update-Log
-        Restart-Script -Path $path/LlamaCpp-Toolbox.ps1
+        Start-Process PowerShell -ArgumentList $path\LlamaCpp-Toolbox.ps1; [Environment]::Exit(1)
         }
     Else {$label3.Text = "No changes to Toolbox detected."}
 }
