@@ -3,7 +3,7 @@
 # This also acts as the toolbox environment setup script.
 
 # Llama.cpp-Toolbox version
-$global:version = "0.26.restart"
+$global:version = "0.26.restart-test"
 
 # The directory where LlamaCpp-Toolbox.ps1 is initialized.
 $global:path = $PSScriptRoot 
