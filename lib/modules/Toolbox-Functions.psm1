@@ -216,6 +216,7 @@ function UpdateLlama {
         $label3.Text = "Updating..."
         $gitstatus = Invoke-Expression "git pull"
         Update-Log
+        $label3.Text = "Update completed, set a new branch to build."
         }
     Else {$label3.Text = "No changes to llama.cpp detected."}
 }
