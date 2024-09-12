@@ -247,8 +247,8 @@ function AboutForm {
     $label_about_version.Location = New-Object System.Drawing.Point(115, 9)
     $label_about_version.AutoSize = $true
 
-    $cfg = "repo"; $cfgRepo = RetrieveConfig $cfg # get-set the flag for repo.
-    $cfg = "branch"; $cfgbranch = RetrieveConfig $cfg # get-set the flag for branch.
+    $global:cfg = "repo"; $cfgRepo = RetrieveConfig $global:cfg # get-set the flag for repo.
+    $global:cfg = "branch"; $cfgbranch = RetrieveConfig $global:cfg # get-set the flag for branch.
     $label_about_repo = New-Object System.Windows.Forms.label
     $label_about_repo.Text = "Repo: https://github.com/$cfgRepo $cfgbranch"
     $label_about_repo.Location = New-Object System.Drawing.Point(10, 30)

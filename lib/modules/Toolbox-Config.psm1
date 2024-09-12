@@ -5,7 +5,7 @@
 $version_cfg = "0.1.x"
 
 # The config text for this release.
-$cfgText = "Llama.Cpp-Toolbox¦$version
+$global:cfgText = "Llama.Cpp-Toolbox¦$version
 config.txt¦This file stores variables to be used for updates & customization. If this file is modified incorrectly, regret happens.
 help¦Separate arguments with a space like this...llama-quantize.exe Q4_0 --leave-output-tensor
 build¦default
@@ -58,13 +58,13 @@ show¦gguf_dump.py block_count
 show¦gguf_dump.py chat_template"
 
 # Restore the config text.
-function RestoreConfig {Add-Content -Path $path\config.txt -Value $cfgText} # Regenerate config if deleted.
+function RestoreConfig {Add-Content -Path $path\config.txt -Value $global:cfgText} # Regenerate config if deleted.
 
 # Retrieve a specific value within config.
-function RetrieveConfig ($cfg) {
+function RetrieveConfig ($global:cfg) {
     $lines = Get-Content -Path $path\config.txt
     foreach ($line in $lines) {
-        if ($cfg -eq $line.Split('¦')[0].Trim()) {
+        if ($global:cfg -eq $line.Split('¦')[0].Trim()) {
             $cfgValue = $line.Split('¦')[1].Trim()
             return $cfgValue  # Return the retrieved value
             break }  # Exit loop after finding the first match
@@ -72,10 +72,10 @@ function RetrieveConfig ($cfg) {
 }
 
 # Change a specific value within config.
-function EditConfig ($cfg) {
+function EditConfig ($global:cfg) {
     $lines = Get-Content -Path $path\config.txt
     foreach ($line in $lines) {
-        if ($line.StartsWith($cfg+'¦')) {
+        if ($line.StartsWith($global:cfg+'¦')) {
             # Store the modified line in a temporary variable
             $tempLine = $line -replace '(?<=¦).*', $cfgValue
             # Replace the original line with the modified one
@@ -108,22 +108,22 @@ function CfgBuild {
     # Add config.txt file to store variables.
     New-Item -ItemType File -Path $path\config.txt
     RestoreConfig # Fill in the config.txt file from this release.
-    $cfg = "build"; $cfgValue = $build; EditConfig $cfg # Update config with new build value.
+    $global:cfg = "build"; $cfgValue = $build; EditConfig $global:cfg # Update config with new build value.
     if (Test-Path "$path\llama.cpp"){}else{InstallLlama}
     }
 }
 
 # Update the config text when new version is retrieved.
 #FIXME edit config on update. Goodluck.
-$cfg = "Llama.cpp-Toolbox"; $cfgVersion = RetrieveConfig $cfg # get-set the flag for version.
-$Alines = $cfgText -split [Environment]::NewLine
+$global:cfg = "Llama.cpp-Toolbox"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for version.
+$Alines = $global:cfgText -split [Environment]::NewLine
 function UpdateConfig {
     foreach ($line in $Alines){
-        $cfg = $line.Split('¦')[0].Trim();
+        $global:cfg = $line.Split('¦')[0].Trim();
         $cfgValue = $line.Split('¦')[1].Trim();
-        EditConfig $cfg
+        EditConfig $global:cfg
         }
 }
-#if ($version -ne $cfgVersion){UpdateConfig} # If it needs to be done do it. #Move this into the init when completed.
+#if ($version -ne $global:cfgVersion){UpdateConfig} # If it needs to be done do it. #Move this into the init when completed.
 
 Export-ModuleMember -Function * -Variable * -Alias *

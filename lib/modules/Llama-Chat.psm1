@@ -27,9 +27,9 @@ function LlamaChat {
             $args += "$arg "
         }
     }
-    $Global:selectedModel = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
-    $cfg = "maxCtx"; $cfgCTX = RetrieveConfig $cfg # get-set the flag for $cfgCTX then retrieve it's value.
-    $Global:option = "metadata"; $value = ggufDump $value # Set the option needed to retrieve all metadata then retrieve the following values.
+    $global:selectedModel = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
+    $global:cfg = "maxCtx"; $cfgCTX = RetrieveConfig $global:cfg # get-set the flag for $cfgCTX then retrieve it's value.
+    $global:option = "metadata"; $value = ggufDump $value # Set the option needed to retrieve all metadata then retrieve the following values.
     # Retrieve context length
     if($value -match "context"){$matchingKey = ($value | Get-Member -Name *"context_length").Name | Where-Object { $_ -like "*context_length*" } | Select-Object -First 1
         if ($value | Get-Member -Name $matchingKey){

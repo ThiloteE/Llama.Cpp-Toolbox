@@ -6,8 +6,8 @@ $version_func = "0.1.x"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck{
-    $cfg = "Llama.Cpp-Toolbox"; $cfgVersion = RetrieveConfig $cfg # get-set the flag for old Toolbox version.
-    if ($version -ne $cfgVersion){$global:cfgValue = $version ; EditConfig $cfg # Update config with new value.
+    $global:cfg = "Llama.Cpp-Toolbox"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for old Toolbox version.
+    if ($version -ne $global:cfgVersion){$cfgValue = $version ; EditConfig $global:cfg # Update config with new value.
     #TODO#UpdateConfig # Update the config with new functionality.
     }
 }
@@ -207,7 +207,7 @@ function UpdateToolbox {
 
 # Update Llama.cpp if repo is changed or if updates found in repo.
 function UpdateLlama {
-    $cfg = "repo"; $cfgRepo = RetrieveConfig $cfg # get-set the flag for repo.
+    $global:cfg = "repo"; $cfgRepo = RetrieveConfig $global:cfg # get-set the flag for repo.
     cd $path\llama.cpp
     $fetch = Invoke-Expression "git fetch" # Check for any updates using Git.
     $gitstatus = Invoke-Expression "git status"
@@ -225,7 +225,7 @@ function UpdateLlama {
 # Install Llama.Cpp for the toolbox on first run.
 function InstallLlama {
     Read-Host "Installing llama.cpp, any key to continue"
-    cd $path
+    Set-Location -Path $path
     mkdir $path\Converted
     git clone --progress --recurse-submodules https://github.com/ggerganov/llama.cpp.git
     pyenv local 3.11
@@ -236,6 +236,7 @@ function InstallLlama {
     python -m pip install -r $path\llama.cpp\requirements.txt
     pyenv rehash
     deactivate
+    Set-Location -Path $path\llama.cpp
     $branch = Get-NewRelease # Get the latest release version.
     Set-GitBranch $branch # Set the cfg to this branch then build it.
     Main # Everything is ready to start the GUI.
@@ -243,7 +244,7 @@ function InstallLlama {
 
 # Build Llama as needed.
 function BuildLlama {
-    $cfg = "build"; $build = RetrieveConfig $cfg # get-set the flag for $build.
+    $global:cfg = "build"; $build = RetrieveConfig $global:cfg # get-set the flag for $build.
     if($build -eq 'v') {
  		cd $path\llama.cpp
 		rd -r build
@@ -283,8 +284,8 @@ function Update-Log {
 
 # Change the branch to use, $branch is set when changed in ConfigForm.
 function Set-GitBranch ($branch) {
-    $cfg = "branch"; $cfgBranch = RetrieveConfig $cfg # get-set the flag for $branch.
-    if ($branch -ne $cfgBranch){$cfgValue = $branch; EditConfig $cfg # Update config with new value.
+    $global:cfg = "branch"; $cfgBranch = RetrieveConfig $global:cfg # get-set the flag for $branch.
+    if ($branch -ne $cfgBranch){$cfgValue = $branch; EditConfig $global:cfg # Update config with new value.
         git submodule deinit -f --all
         git checkout $branch # Change branch using Git.
         git reset --hard $branch # Remove changes from other repo/branch.
@@ -296,11 +297,11 @@ function Set-GitBranch ($branch) {
 
 # Change the repo to use, $repo is set when changed in ConfigForm.
 function Set-GitRepo {
-    $cfg = "repo"; $cfgRepo = RetrieveConfig $cfg # get-set the flag for $repo.
-    if ($repo -ne $cfgRepo){$cfgValue = $repo; EditConfig $cfg # Update config with new value.
+    $global:cfg = "repo"; $cfgRepo = RetrieveConfig $global:cfg # get-set the flag for $repo.
+    if ($repo -ne $cfgRepo){$cfgValue = $repo; EditConfig $global:cfg # Update config with new value.
         git remote set-url origin https://github.com/$repo # Change repo using Git.
         $fetch = Invoke-Expression "git fetch" # Check for any changes using Git.
-        $cfg = "branch"; $cfgValue = Get-GitBranch; EditConfig $cfg # get-set the flag for $repo.
+        $global:cfg = "branch"; $cfgValue = Get-GitBranch; EditConfig $global:cfg # get-set the flag for $repo.
         git submodule deinit -f --all
         git reset --hard $branch # Remove changes from other repo/branch.
         git submodule update --init --recursive
@@ -312,6 +313,7 @@ function Set-GitRepo {
 # Llama.Cpp releases use "b####" tags.
 # Search all tags that start with 'b', sort them in descending order, select the most recent one.
 function Get-NewRelease{
+    
     $latestBTag = git tag -l "b*" | Sort-Object -Descending | Select-Object -First 1
 
     if ($latestBTag) {
@@ -323,7 +325,7 @@ function Get-NewRelease{
 function SymlinkModel {
     $selectedModel = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
     if ($selectedModel -match ".gguf"){
-        $cfg = "symlinkdir"; $symlinkdir = RetrieveConfig $cfg # get-set the flag for $symlinkdir.
+        $global:cfg = "symlinkdir"; $symlinkdir = RetrieveConfig $global:cfg # get-set the flag for $symlinkdir.
         $note = "Admin permission required to create symlink in... $symlinkdir`n`nContinue?" ; $halt = Confirm # If the file exists then ask to overwrite.
         if($halt -eq 0){
             if(test-path $symlinkdir){}else{$note = "Create symlink directory in... $symlinkdir`n`nContinue?" ; $halt = Confirm ; if($halt -eq 0){mkdir $symlinkdir}}
