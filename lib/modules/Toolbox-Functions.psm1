@@ -227,7 +227,7 @@ function InstallLlama {
     Read-Host "Installing llama.cpp, any key to continue"
     cd $path
     mkdir $path\Converted
-    git clone --progress --recurse-submodules https://github.com/3Simplex/llama.cpp.git
+    git clone --progress --recurse-submodules https://github.com/ggerganov/llama.cpp.git
     pyenv local 3.11
     pip install cmake
     pyenv rehash
@@ -236,22 +236,9 @@ function InstallLlama {
     python -m pip install -r $path\llama.cpp\requirements.txt
     pyenv rehash
     deactivate
-    if ($build -eq 'v') {
-        cd $path\llama.cpp
-        mkdir build
-        cmake -B .\build -DGGML_VULKAN=ON -DGGML_NATIVE=ON
-        cmake --build build --config Release -j $NumberOfCores
-    } elseif ($build -eq 'c') {
-        cd $path\llama.cpp
-        mkdir build
-        cmake -B .\build -DGGML_CUDA=ON -DGGML_NATIVE=ON
-        cmake --build build --config Release -j $NumberOfCores
-    } elseif ($build -eq 'cpu') {
-        cd $path\llama.cpp
-        mkdir build
-        cmake -B .\build -DGGML_NATIVE=ON
-        cmake --build build --config Release -j $NumberOfCores
-    }
+    $branch = Get-NewRelease # Get the latest release version.
+    Set-GitBranch $branch # Set the cfg to this branch then build it.
+    Main # Everything is ready to start the GUI.
 }
 
 # Build Llama as needed.
@@ -295,7 +282,7 @@ function Update-Log {
     }
 
 # Change the branch to use, $branch is set when changed in ConfigForm.
-function Set-GitBranch {
+function Set-GitBranch ($branch) {
     $cfg = "branch"; $cfgBranch = RetrieveConfig $cfg # get-set the flag for $branch.
     if ($branch -ne $cfgBranch){$cfgValue = $branch; EditConfig $cfg # Update config with new value.
         git submodule deinit -f --all
@@ -319,6 +306,16 @@ function Set-GitRepo {
         git submodule update --init --recursive
         $label3.Text = "Repo changed, rebuilding..."
         BuildLlama # Build with the new repo.
+    }
+}
+
+# Llama.Cpp releases use "b####" tags.
+# Search all tags that start with 'b', sort them in descending order, select the most recent one.
+function Get-NewRelease{
+    $latestBTag = git tag -l "b*" | Sort-Object -Descending | Select-Object -First 1
+
+    if ($latestBTag) {
+        return $latestBTag
     }
 }
 

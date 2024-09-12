@@ -9,7 +9,7 @@ $cfgText = "Llama.Cpp-Toolbox¦$version
 config.txt¦This file stores variables to be used for updates & customization. If this file is modified incorrectly, regret happens.
 help¦Separate arguments with a space like this...llama-quantize.exe Q4_0 --leave-output-tensor
 build¦default
-repo¦3Simplex/llama.cpp.git
+repo¦ggerganov/llama.cpp.git
 branch¦master
 symlinkdir¦$path\Symlinks
 maxCtx¦4096
