@@ -65,8 +65,8 @@ function RetrieveConfig ($global:cfg) {
     $lines = Get-Content -Path $path\config.txt
     foreach ($line in $lines) {
         if ($global:cfg -eq $line.Split('¦')[0].Trim()) {
-            $cfgValue = $line.Split('¦')[1].Trim()
-            return $cfgValue  # Return the retrieved value
+            $global:cfgValue = $line.Split('¦')[1].Trim()
+            return $global:cfgValue  # Return the retrieved value
             break }  # Exit loop after finding the first match
         }
 }
@@ -77,7 +77,7 @@ function EditConfig ($global:cfg) {
     foreach ($line in $lines) {
         if ($line.StartsWith($global:cfg+'¦')) {
             # Store the modified line in a temporary variable
-            $tempLine = $line -replace '(?<=¦).*', $cfgValue
+            $tempLine = $line -replace '(?<=¦).*', $global:cfgValue
             # Replace the original line with the modified one
             $line = $tempLine
         }
@@ -108,7 +108,7 @@ function CfgBuild {
     # Add config.txt file to store variables.
     New-Item -ItemType File -Path $path\config.txt
     RestoreConfig # Fill in the config.txt file from this release.
-    $global:cfg = "build"; $cfgValue = $build; EditConfig $global:cfg # Update config with new build value.
+    $global:cfg = "build"; $global:cfgValue = $build; EditConfig $global:cfg # Update config with new build value.
     if (Test-Path "$path\llama.cpp"){}else{InstallLlama}
     }
 }
@@ -120,7 +120,7 @@ $Alines = $global:cfgText -split [Environment]::NewLine
 function UpdateConfig {
     foreach ($line in $Alines){
         $global:cfg = $line.Split('¦')[0].Trim();
-        $cfgValue = $line.Split('¦')[1].Trim();
+        $global:cfgValue = $line.Split('¦')[1].Trim();
         EditConfig $global:cfg
         }
 }

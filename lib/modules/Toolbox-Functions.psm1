@@ -7,7 +7,7 @@ $version_func = "0.1.x"
 # Check the version, run UpdateConfig if needed.
 function VersionCheck{
     $global:cfg = "Llama.Cpp-Toolbox"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for old Toolbox version.
-    if ($version -ne $global:cfgVersion){$cfgValue = $version ; EditConfig $global:cfg # Update config with new value.
+    if ($version -ne $global:cfgVersion){$global:cfgValue = $version ; EditConfig $global:cfg # Update config with new value.
     #TODO#UpdateConfig # Update the config with new functionality.
     }
 }
@@ -285,7 +285,7 @@ function Update-Log {
 # Change the branch to use, $branch is set when changed in ConfigForm.
 function Set-GitBranch ($branch) {
     $global:cfg = "branch"; $cfgBranch = RetrieveConfig $global:cfg # get-set the flag for $branch.
-    if ($branch -ne $cfgBranch){$cfgValue = $branch; EditConfig $global:cfg # Update config with new value.
+    if ($branch -ne $cfgBranch){$global:cfgValue = $branch; EditConfig $global:cfg # Update config with new value.
         git submodule deinit -f --all
         git checkout $branch # Change branch using Git.
         git reset --hard $branch # Remove changes from other repo/branch.
@@ -298,10 +298,10 @@ function Set-GitBranch ($branch) {
 # Change the repo to use, $repo is set when changed in ConfigForm.
 function Set-GitRepo {
     $global:cfg = "repo"; $cfgRepo = RetrieveConfig $global:cfg # get-set the flag for $repo.
-    if ($repo -ne $cfgRepo){$cfgValue = $repo; EditConfig $global:cfg # Update config with new value.
+    if ($repo -ne $cfgRepo){$global:cfgValue = $repo; EditConfig $global:cfg # Update config with new value.
         git remote set-url origin https://github.com/$repo # Change repo using Git.
         $fetch = Invoke-Expression "git fetch" # Check for any changes using Git.
-        $global:cfg = "branch"; $cfgValue = Get-GitBranch; EditConfig $global:cfg # get-set the flag for $repo.
+        $global:cfg = "branch"; $global:cfgValue = Get-GitBranch; EditConfig $global:cfg # get-set the flag for $repo.
         git submodule deinit -f --all
         git reset --hard $branch # Remove changes from other repo/branch.
         git submodule update --init --recursive
