@@ -7,7 +7,8 @@ $version_func = "0.1.x"
 # Check the version, run UpdateConfig if needed.
 function VersionCheck{
     $global:cfg = "Llama.Cpp-Toolbox"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for old Toolbox version.
-    if ($version -ne $global:cfgVersion){$global:cfgValue = $version ; EditConfig $global:cfg # Update config with new value.
+    if ($version -ne $global:cfgVersion){
+    $global:cfgValue = $version ; EditConfig $global:cfg # Update config with new value.
     #TODO#UpdateConfig # Update the config with new functionality.
     }
 }

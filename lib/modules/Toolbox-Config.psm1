@@ -1,11 +1,12 @@
 ﻿# Toolbox-Config.psm1
 # Contains the configuration functions.
 
-# Toolbox-Config version
-$version_cfg = "0.1.x"
+# Toolbox Config Text Version
+$script:version_cfg = "0.1.x"
 
 # The config text for this release.
-$global:cfgText = "Llama.Cpp-Toolbox¦$version
+$script:cfgText = "Llama.Cpp-Toolbox¦$version
+Config-Version¦$version_cfg
 config.txt¦This file stores variables to be used for updates & customization. If this file is modified incorrectly, regret happens.
 help¦Separate arguments with a space like this...llama-quantize.exe Q4_0 --leave-output-tensor
 build¦default
@@ -58,7 +59,7 @@ show¦gguf_dump.py block_count
 show¦gguf_dump.py chat_template"
 
 # Restore the config text.
-function RestoreConfig {Add-Content -Path $path\config.txt -Value $global:cfgText} # Regenerate config if deleted.
+function RestoreConfig {Add-Content -Path $path\config.txt -Value $script:cfgText} # Regenerate config if deleted.
 
 # Retrieve a specific value within config.
 function RetrieveConfig ($global:cfg) {
@@ -114,16 +115,9 @@ function CfgBuild {
 }
 
 # Update the config text when new version is retrieved.
-#FIXME edit config on update. Goodluck.
-$global:cfg = "Llama.cpp-Toolbox"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for version.
-$Alines = $global:cfgText -split [Environment]::NewLine
 function UpdateConfig {
-    foreach ($line in $Alines){
-        $global:cfg = $line.Split('¦')[0].Trim();
-        $global:cfgValue = $line.Split('¦')[1].Trim();
-        EditConfig $global:cfg
-        }
+    $global:cfg = "Config-Version"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for version.
+    $NewLines = $script:cfgText -split [Environment]::NewLine
 }
-#if ($version -ne $global:cfgVersion){UpdateConfig} # If it needs to be done do it. #Move this into the init when completed.
 
 Export-ModuleMember -Function * -Variable * -Alias *

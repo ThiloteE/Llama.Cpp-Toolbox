@@ -268,14 +268,43 @@ function ConfigForm {
     
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "Config Llama.cpp-Toolbox"
-    $form.Size = New-Object System.Drawing.Size(750, 300)
+    $form.Size = New-Object System.Drawing.Size(550, 300)
     
+    # Create the botom Panel first. (form fills from botom up)
     $panel = New-Object System.Windows.Forms.Panel
     $panel.Dock = [System.Windows.Forms.DockStyle]::Fill
     $panel.AutoSize = $true
     $panel.AutoScroll = $true
     $form.Controls.Add($panel)
     
+    # Create the top ToolStrip last. (form fills from botom up)
+    $toolStrip = New-Object System.Windows.Forms.ToolStrip
+    $toolStrip.Dock = [System.Windows.Forms.DockStyle]::Top
+    $toolStrip.AutoSize = $true
+    $form.Controls.Add($toolStrip)
+
+    # Create a ToolStripButton for Save
+    $saveButton = New-Object System.Windows.Forms.ToolStripButton
+    $saveButton.Text = "Save"
+    $saveButton.Add_Click({
+        foreach ($index in $script:textBoxes.Keys) {
+            $parts = $script:lines[$index].Split('¦')
+            if ($script:toggleButtons.ContainsKey($index)) {
+                $parts[0] = if ($script:toggleButtons[$index].Text -eq "show") { "hide" } else { "show" }
+            }
+            $parts[1] = $script:textBoxes[$index].Text.Trim()
+            $script:lines[$index] = $parts -join '¦'
+        }
+        
+        $script:lines | Set-Content $path\config.txt
+        [System.Windows.Forms.MessageBox]::Show("Configuration saved successfully.", "Save Complete")
+        
+        # Refresh the form
+        CreateFormControls
+        ListScripts
+    })
+    $toolStrip.Items.Add($saveButton)
+
     $script:textBoxes = @{}
     $script:toggleButtons = @{}
     $script:commitButtons = @{}
@@ -318,28 +347,6 @@ function ConfigForm {
                 $yPosition += 30
             }
         }
-        
-        $saveButton = New-Object System.Windows.Forms.Button
-        $saveButton.Text = "Save"
-        $saveButton.Location = New-Object System.Drawing.Point(10, $yPosition)
-        $saveButton.Add_Click({
-            foreach ($index in $script:textBoxes.Keys) {
-                $parts = $script:lines[$index].Split('¦')
-                if ($script:toggleButtons.ContainsKey($index)) {
-                    $parts[0] = if ($script:toggleButtons[$index].Text -eq "show") { "hide" } else { "show" }
-                }
-                $parts[1] = $script:textBoxes[$index].Text.Trim()
-                $script:lines[$index] = $parts -join '¦'
-            }
-            
-            $script:lines | Set-Content $path\config.txt
-            [System.Windows.Forms.MessageBox]::Show("Configuration saved successfully.", "Save Complete")
-            
-            # Refresh the form
-            CreateFormControls
-            ListScripts
-        })
-        $panel.Controls.Add($saveButton)
     }
     
     CreateFormControls
