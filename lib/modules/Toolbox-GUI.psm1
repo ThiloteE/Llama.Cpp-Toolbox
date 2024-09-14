@@ -1,7 +1,6 @@
 ﻿# Toolbox-GUI.psm1
 # Contains the GUI elements.
 
-# todo # Within the menu item named "Config" create a dynamicly populated window with a label for each line of the "config.txt" file.
 # todo # Assist with update of Transformers
 
 # Llama.cpp-Toolbox GUI version
@@ -263,53 +262,139 @@ function AboutForm {
     $about_form.ShowDialog()
 }
 
-# Define the ConfigForm to display a dynamicly populated window.
 function ConfigForm {
     # Read lines from the configuration file
-    $lines = Get-Content $path\config.txt
-
-    # Create a new WinForms application
+    $script:lines = Get-Content $path\config.txt
+    
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "Config Llama.cpp-Toolbox"
     $form.Size = New-Object System.Drawing.Size(750, 300)
-
-    # Create a panel to hold the controls
+    
     $panel = New-Object System.Windows.Forms.Panel
     $panel.Dock = [System.Windows.Forms.DockStyle]::Fill
-    $panel.AutoSize = $true # Automatically resize with content.
-    $panel.AutoScroll = $true # Include scrollbar
+    $panel.AutoSize = $true
+    $panel.AutoScroll = $true
     $form.Controls.Add($panel)
-
-    # Iterate through each line of the configuration file
-    foreach ($line in $lines) {
-        if ($line -ne "") { # Ignore blank lines
-            # Parse the line into label and textbox values
-            $parts = $line.Split('¦')
-            $labelText = $parts[0].Trim()
-            $textBoxText = $parts[1].Trim()
-
-            # Create a label and textbox control
-            $label = New-Object System.Windows.Forms.Label
-            $label.Text = $labelText
-            $label.AutoSize = $true
-            $label.Location = New-Object System.Drawing.Point(10, $yPosition)
-
-            $textBox = New-Object System.Windows.Forms.TextBox
-            $textBox.Text = $textBoxText
-            $textBox.Location = New-Object System.Drawing.Point(120, $yPosition)
-            $textBox.Width = 300
-
-            # Add the controls to the panel
-            $panel.Controls.Add($label)
-            $panel.Controls.Add($textBox)
+    
+    $script:textBoxes = @{}
+    $script:toggleButtons = @{}
+    $script:commitButtons = @{}
+    
+    function CreateFormControls {
+        $panel.Controls.Clear()
+        $script:textBoxes.Clear()
+        $script:toggleButtons.Clear()
+        $script:commitButtons.Clear()
         
-            # Update yPosition for the next control
-            $yPosition += $label.Height + 5  # Add a margin between controls
+        $yPosition = 10
+        
+        foreach ($index in 0..($script:lines.Count - 1)) {
+            $line = $script:lines[$index]
+            if ($line -ne "" -and $line -notmatch "Toolbox" -and $line -notmatch "config.txt") {
+                $parts = $line.Split('¦')
+                $labelText = $parts[0].Trim()
+                $textBoxText = $parts[1].Trim()
+                
+                $label = New-Object System.Windows.Forms.Label
+                $label.Text = $labelText
+                $label.AutoSize = $true
+                $label.Location = New-Object System.Drawing.Point(10, $yPosition)
+                $panel.Controls.Add($label)
+                
+                $textBox = New-Object System.Windows.Forms.TextBox
+                $textBox.Text = $textBoxText
+                $textBox.Location = New-Object System.Drawing.Point(120, $yPosition)
+                $textBox.Width = 300
+                $panel.Controls.Add($textBox)
+                
+                $script:textBoxes[$index] = $textBox
+                
+                if ($labelText -match "show|hide") {
+                    ToggleButton $index $yPosition $labelText
+                } else {
+                    CommitButton $index $yPosition
+                }
+                
+                $yPosition += 30
+            }
         }
+        
+        $saveButton = New-Object System.Windows.Forms.Button
+        $saveButton.Text = "Save"
+        $saveButton.Location = New-Object System.Drawing.Point(10, $yPosition)
+        $saveButton.Add_Click({
+            foreach ($index in $script:textBoxes.Keys) {
+                $parts = $script:lines[$index].Split('¦')
+                if ($script:toggleButtons.ContainsKey($index)) {
+                    $parts[0] = if ($script:toggleButtons[$index].Text -eq "show") { "hide" } else { "show" }
+                }
+                $parts[1] = $script:textBoxes[$index].Text.Trim()
+                $script:lines[$index] = $parts -join '¦'
+            }
+            
+            $script:lines | Set-Content $path\config.txt
+            [System.Windows.Forms.MessageBox]::Show("Configuration saved successfully.", "Save Complete")
+            
+            # Refresh the form
+            CreateFormControls
+            ListScripts
+        })
+        $panel.Controls.Add($saveButton)
     }
-
-    # Show the WinForms application
+    
+    CreateFormControls
     $form.ShowDialog()
 }
+
+function ToggleButton($index, $yPos, $labelText) {
+    $ButtonT = New-Object System.Windows.Forms.Button
+    $ButtonT.Location = New-Object System.Drawing.Point(430, $yPos)
+    $ButtonT.Size = New-Object System.Drawing.Size(80,23)
+    $ButtonT.Text = if ($labelText -match "show") { "hide" } else { "show" }
+    $panel.Controls.Add($ButtonT)
+    
+    $script:toggleButtons[$index] = $ButtonT
+    $ButtonT.Add_Click({
+        $this.Text = if ($this.Text -eq "show") { "hide" } else { "show" }
+    })
+}
+
+function CommitButton($index, $yPos) {
+    $ButtonC = New-Object System.Windows.Forms.Button
+    $ButtonC.Location = New-Object System.Drawing.Point(430, $yPos)
+    $ButtonC.Size = New-Object System.Drawing.Size(80,23)
+    $ButtonC.Text = "Commit"
+    $panel.Controls.Add($ButtonC)
+    
+    $script:commitButtons[$index] = $ButtonC
+    $ButtonC.Add_Click({
+        $lineText = $script:lines[$index]
+        $action = DetermineAction $lineText
+        PerformAction $action $script:textBoxes[$index].Text
+    })
+}
+
+function DetermineAction($lineText) {
+    switch -Regex ($lineText) {
+        "Action1" { return "Action1" }
+        "Action2" { return "Action2" }
+        default { return "DefaultAction" }
+    }
+}
+
+function PerformAction($action, $value) {
+    switch ($action) {
+        "Action1" { 
+            [System.Windows.Forms.MessageBox]::Show("Performing Action1 with value: $value", "Action1")
+        }
+        "Action2" { 
+            [System.Windows.Forms.MessageBox]::Show("Performing Action2 with value: $value", "Action2")
+        }
+        default { 
+            [System.Windows.Forms.MessageBox]::Show("Performing Default Action with value: $value", "Default Action")
+        }
+    }
+}
+
 
 Export-ModuleMember -Function * -Variable * -Alias *

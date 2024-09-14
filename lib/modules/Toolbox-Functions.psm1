@@ -27,6 +27,7 @@ function ListModels {
 
 # Get list of scripts from config.
 function ListScripts {
+    $ComboBox2.Items.Clear()
     Get-Content -Path "$path\config.txt" | Where-Object {$_.TrimStart().StartsWith("show¦")} | ForEach-Object {
         $ComboBox2.Items.Add($_.Split('¦')[1].Trim())
     }
