@@ -2,7 +2,7 @@
 # Contains the configuration functions.
 
 # Toolbox Config Text Version
-$script:version_cfg = "0.1.x"
+$global:version_cfg = "0.1.x"
 
 # The config text for this release.
 $script:cfgText = "Llama.Cpp-Toolbox¦$version
@@ -58,6 +58,54 @@ show¦gguf_dump.py context_length
 show¦gguf_dump.py block_count
 show¦gguf_dump.py chat_template"
 
+# Upgrade the config text when new version is retrieved.
+function UpgradeConfig {
+    # Get the new config text "cfgText" for this version to compare with the users older version of config.txt
+    $lines1 = $script:cfgText -split [Environment]::NewLine
+    # Get the old config.txt to compare with the newer "cfgText" for this version.
+    $lines2 = Get-Content -Path $path\config.txt
+
+    $output = @() # Create array to contain lines which will be written.
+    $linesRead = @{} # Create array to contain all lines we looked at.
+    
+    # Check each line of the original config file for missing lines from the new config text.
+    foreach ($line1 in $lines1) {
+        $foundMatch = $false
+        # Separate handling for any line that does not start with "show" or "hide", these are the settings.
+        if ($line1.Split('¦')[0].Trim() -notmatch "(show|hide)"){
+            foreach ($line2 in $lines2) {
+                # For each $line2 check any $line1 that does not start with "show" or "hide"
+                if ($line1.Split('¦')[0].Trim() -notmatch "(show|hide)"){
+                    # Compare the relevant entries of $lines2 for a matching item.
+                    if ($line2.Split('¦')[0].Trim().Contains($line1.Split('¦')[0].Trim())) {
+                        $output += $line2 # If a match exists keep it, this may have been modified by the user.
+                        $foundMatch = $true # Mark that we found a match, then continue looking for more to add.
+                    }
+                }
+            }
+            if (!$foundMatch) {
+                $output += $line1 # If no match exists add the new configuration option.
+            }
+        }
+        else{ # Separate handling for any line which starts with "show" or "hide", these are the menu items.
+            foreach ($line2 in $lines2) {
+                # Look for new entries that also exist in the original config that have not been added already.
+                if ($line2.Split('¦')[1].Trim().Split(' ')[0].Trim().Contains($line1.Split('¦')[1].Trim().Split(' ')[0].Trim()) -and !$linesRead.ContainsKey($line2)) {
+                    $output += $line2 # If a match exists keep it, this may have been modified by the user.
+                    $linesRead[$line2] = 1 # Mark the line that's added so we don't copy it.
+                    $foundMatch = $true # Mark that we found a match, then continue looking for more to add.
+                }
+            }
+            if (!$foundMatch -and !$linesRead.ContainsKey($line1)) {
+                $output += $line1 # Add the new missing entry.
+                $linesRead[$line1] = 1 # Mark the line that's added so we don't copy it.
+            }
+        }
+    }
+    # Write the new config text!
+    Set-Content -Path $path\config.txt -Value $output
+}
+
 # Restore the config text.
 function RestoreConfig {Add-Content -Path $path\config.txt -Value $script:cfgText} # Regenerate config if deleted.
 
@@ -112,12 +160,6 @@ function CfgBuild {
     $global:cfg = "build"; $global:cfgValue = $build; EditConfig $global:cfg # Update config with new build value.
     if (Test-Path "$path\llama.cpp"){}else{InstallLlama}
     }
-}
-
-# Update the config text when new version is retrieved.
-function UpdateConfig {
-    $global:cfg = "Config-Version"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for version.
-    $NewLines = $script:cfgText -split [Environment]::NewLine
 }
 
 Export-ModuleMember -Function * -Variable * -Alias *

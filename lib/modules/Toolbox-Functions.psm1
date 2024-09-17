@@ -2,14 +2,16 @@
 # Contains the functions.
 
 # Toolbox-Functions version
-$version_func = "0.1.x"
+$global:version_func = "0.1.x"
 
 # Check the version, run UpdateConfig if needed.
-function VersionCheck{
+function VersionCheck {
     $global:cfg = "Llama.Cpp-Toolbox"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for old Toolbox version.
     if ($version -ne $global:cfgVersion){
     $global:cfgValue = $version ; EditConfig $global:cfg # Update config with new value.
-    #TODO#UpdateConfig # Update the config with new functionality.
+    # Get the version of the config text, if it matches the file we can skip this update.
+    $global:cfg = "Config-Version"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for version.
+    if ($cfgVersion -ne $version_cfg){UpgradeConfig} # Update the config with new functionality as needed.
     }
 }
 

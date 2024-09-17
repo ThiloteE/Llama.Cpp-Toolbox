@@ -4,7 +4,7 @@
 # todo # Assist with update of Transformers
 
 # Llama.cpp-Toolbox GUI version
-$version_GUI = "0.1.x"
+$global:version_GUI = "0.1.x"
 
 Add-Type -AssemblyName System.Windows.Forms
 
@@ -319,7 +319,7 @@ function ConfigForm {
         
         foreach ($index in 0..($script:lines.Count - 1)) {
             $line = $script:lines[$index]
-            if ($line -ne "" -and $line -notmatch "Toolbox" -and $line -notmatch "config.txt") {
+            if ($line -ne "" -and $line -notmatch "Toolbox" -and $line -notmatch "config.txt" -and $line -notmatch "Config-Version" -and $line -notmatch "help") {
                 $parts = $line.Split('¦')
                 $labelText = $parts[0].Trim()
                 $textBoxText = $parts[1].Trim()

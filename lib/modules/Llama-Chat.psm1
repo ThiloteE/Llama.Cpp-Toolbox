@@ -1,6 +1,6 @@
 ﻿# Llama-Chat.psm1
 # Contains chat functionality.
-# TODO count 2
+# TODO count 3
 
 # To chat with the chosen LLM.
 # You may use use llama-server or llama-cli.
@@ -10,9 +10,10 @@
 # The option for context is retrieved from the model, your config setting for max context is compared and the lower setting will be used. (TODO: should be a per model setting.)
 # Config.txt: For llama-server, choose your port then place args after the port "llama-server 8080 your_args"
 # Config.txt: For llama-cli, place args after the script name "llama-cli your_args"
+# TODO, llama-cli is not handled yet, should this just be opened in a new PS window?
 
 # Llama-Chat version
-$Llama_Chat_Ver = 0.1.0
+$global:Llama_Chat_Ver = 0.1.0
 
 function LlamaChat {
     # Extract parts from the selected item in the combobox.
