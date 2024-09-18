@@ -102,8 +102,8 @@ function UpgradeConfig {
             }
         }
     }
-    # Write the new config text!
-    Set-Content -Path $path\config.txt -Value $output
+    # Save the updated content back to the file without adding a newline at the end
+    $output -join "`r`n" | Set-Content -Path "$path\config.txt" -NoNewline
 }
 
 # Restore the config text.
