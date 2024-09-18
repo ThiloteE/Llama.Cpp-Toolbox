@@ -295,10 +295,12 @@ function ConfigForm {
             $parts[1] = $script:textBoxes[$index].Text.Trim()
             $script:lines[$index] = $parts -join '¦'
         }
-        
-        $script:lines | Set-Content $path\config.txt
+    
+        # Save the updated content back to the file without adding a newline at the end
+        $script:lines -join "`r`n" | Set-Content -Path "$path\config.txt" -NoNewline
+
         [System.Windows.Forms.MessageBox]::Show("Configuration saved successfully.", "Save Complete")
-        
+    
         # Refresh the form
         CreateFormControls
         ListScripts

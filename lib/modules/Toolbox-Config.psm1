@@ -122,19 +122,18 @@ function RetrieveConfig ($global:cfg) {
 
 # Change a specific value within config.
 function EditConfig ($global:cfg) {
-    $lines = Get-Content -Path $path\config.txt
-    foreach ($line in $lines) {
+    $lines = Get-Content -Path "$path\config.txt"
+    $newlines = for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i]
         if ($line.StartsWith($global:cfg+'¦')) {
-            # Store the modified line in a temporary variable
-            $tempLine = $line -replace '(?<=¦).*', $global:cfgValue
             # Replace the original line with the modified one
-            $line = $tempLine
+            ($line -replace '(?<=¦).*', $global:cfgValue).Trim()
+        } else {
+            $line
         }
-        $newlines = $newlines+$line+"`n"
     }
-
-    # Save the updated content back to the file
-    Set-Content -Path $path\config.txt -Value $newlines
+    # Save the updated content back to the file without adding a newline at the end
+    $newlines -join "`r`n" | Set-Content -Path "$path\config.txt" -NoNewline
 }
 
 # Set the build flags for the config.
