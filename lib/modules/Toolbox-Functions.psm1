@@ -227,6 +227,8 @@ function UpdateToolbox {
 
 # Update Llama.cpp if repo is changed or if updates found in repo.
 function UpdateLlama {
+    # The user needs to select a branch to build, thats when the flag is set true.
+    $global:cfgValue = "False"; $global:cfg = "rebuild"; EditConfig $global:cfg # get-set the flag for $rebuild.
     cd $path\llama.cpp
     git checkout master
     $branch = Get-GitBranch
@@ -243,6 +245,7 @@ function UpdateLlama {
         $label3.Text = "Update completed, set a new branch to build."
         }
     Else {$label3.Text = "No changes to llama.cpp detected."}
+    SetButton
 }
 
 # Install Llama.Cpp for the toolbox on first run.
@@ -290,7 +293,7 @@ function BuildLlama {
 		cmake --build build --config Release -j $NumberOfCores
 	}
 
-$global:cfgValue = $false; $global:cfg = "rebuild"; EditConfig $global:cfg # get-set the flag for $rebuild.
+$global:cfgValue = "False"; $global:cfg = "rebuild"; EditConfig $global:cfg # get-set the flag for $rebuild.
 SetButton
 $label3.Text = "Build completed."
 }
@@ -298,7 +301,7 @@ $label3.Text = "Build completed."
 # Determine the branch in use.
 function Get-GitBranch {
     $gitBranch = (git branch | ? { $_ -match '\*' }) -replace '\*', ''
-    return $gitBranch
+    return $gitBranch.Trim()
 }
 
 # Display and log the changes, after asigning a $log_name and using $gitstatus = Invoke-Expression "git pull".
@@ -312,7 +315,7 @@ function Update-Log {
 
 # Change the branch to use, $branch is set when changed in ConfigForm.
 function Set-GitBranch ($branch) {
-    $global:cfg = "branch" ; $global:cfgValue = $branch; EditConfig $global:cfg # Update config with new value.
+    $global:cfg = "branch" ; $global:cfgValue = $branch.Trim(); EditConfig $global:cfg # Update config with new value.
     git submodule deinit -f --all
     git checkout $branch # Change branch using Git.
     git reset --hard $branch # Remove changes from other repo/branch.
@@ -322,12 +325,14 @@ function Set-GitBranch ($branch) {
 
 # Change the repo to use, $repo is set when changed in ConfigForm.
 function Set-GitRepo ($repo) {
-    $global:cfg = "repo" ; $global:cfgValue = $repo; EditConfig $global:cfg # Update config with new value.
+    cd $path\llama.cpp
+    $global:cfg = "repo" ; $global:cfgValue = $repo.Trim(); EditConfig $global:cfg # Update config with new value.
     git remote set-url origin https://github.com/$repo # Change repo using Git.
     $fetch = Invoke-Expression "git fetch" # Check for any changes using Git.
     git submodule deinit -f --all
-    git reset --hard origin # Remove changes from other repo/branch.
+    git reset --hard origin/master # Remove changes from other repo/branch.
     git submodule update --init --recursive
+    UpdateLlama
     $label3.Text = "Repo changed, remember to rebuild..."
 }
 

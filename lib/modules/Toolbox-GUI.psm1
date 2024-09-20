@@ -27,7 +27,7 @@ $configItem.Add_Click({ConfigForm})
 $updaterLlama  = New-Object System.Windows.Forms.ToolStripMenuItem
 $updaterLlama.Text = "Update Llama.cpp"
 $updaterLlama.ShortcutKeyDisplayString="Ctrl+l"
-$updaterLlama.Add_Click({$note = "Updating the Llama.cpp backend repo.`n`nYou must change to another repo or branch in the Toolbox-Config to rebuild.`n`n Are you sure you want to proceed?"
+$updaterLlama.Add_Click({$note = "Updating Llama.cpp`n`nYou must set a branch in the Toolbox-Config to rebuild.`n`n Are you sure you want to proceed?"
     ;$update = "UpdateLlama";ConfirmUpdate}) # Updates llama.cpp only.
 
 
@@ -124,14 +124,14 @@ function SetButton {
         if($global:rebuild -eq "True"){
             $note = "Please be patient, this may take a while. $symlinkdir`n`nContinue?"
             $halt = Confirm # Inform the user this will take a while.
-            if($halt -eq 0){BuildLlama}
+            if($halt -eq 0){BuildLlama}{}
         } else {
             # Function to 'update' from list of LLMs.
             $label3.Text = ""
             $TextBox2.Text = "" # Clear the text.
             $selectedDirectory = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
             If ($selectedDirectory -eq $null) {
-                $Label3.Text = "List updated, select an LLM to check git status."
+                $Label3.Text = "LLM list updated, select an LLM to check git status."
             } Else {
                 Set-Location $models\$selectedDirectory
                 # Check for any updates using Git.
@@ -152,23 +152,21 @@ function SetButton {
     }
 
     if ($existingButton) {
-        $existingButton.Text = if ($global:rebuild -eq "True") {"Rebuild"} else {"Update"}
-        # Update the existing button's click event
-        $existingButton.remove_Click($existingButton.Click)
-        $existingButton.Add_Click($buttonClickAction)
-    } else {
-        # Button doesn't exist, create a new one
-        $Button = New-Object System.Windows.Forms.Button
-        $Button.Name = "BUL_Button" # Give the button a unique name
-        $Button.Location = New-Object System.Drawing.Size(5,29)
-        $Button.Size = New-Object System.Drawing.Size(100,23)
-        $Button.Text = if($global:rebuild -eq "True"){"Rebuild"}else{"Update"}
-        $main_form.Controls.Add($Button)
-
-        if($global:rebuild -eq "True"){$label3.Text = "Remember to rebuild to use your updates."}
-        # Add click event to the new button
-        $Button.Add_Click($buttonClickAction)
+        # Remove the existing button
+        $main_form.Controls.Remove($existingButton)
     }
+    # Button doesn't exist, create a new one
+    $Button = New-Object System.Windows.Forms.Button
+    $Button.Name = "BUL_Button" # Give the button a unique name
+    $Button.Location = New-Object System.Drawing.Size(5,29)
+    $Button.Size = New-Object System.Drawing.Size(100,23)
+    $Button.Text = if($global:rebuild -eq "True"){"Rebuild"}else{"Update"}
+    $main_form.Controls.Add($Button)
+
+    if($global:rebuild -eq "True"){$label3.Text = "Remember to rebuild to use your updates."}
+    # Add click event to the new button
+    $Button.Add_Click($buttonClickAction)
+    
 }
 
 # Textbox for output.
@@ -431,7 +429,7 @@ function CommitButton($index, $yPosition) {
         $clickedButtonIndex = $global:buttonIndices[$this]
         $labelText = $lines[$clickedButtonIndex]
         $global:labelText = $labelText.Split('¦')[0].Trim()
-        write-host "$global:labelText"
+        #write-host "$global:labelText"
         $value = if ($global:labelText -match "build|branch") {
             $global:comboBoxes[$clickedButtonIndex].Text
         } else {
@@ -445,11 +443,11 @@ function CommitButton($index, $yPosition) {
 
 function DetermineAction($index, $value) {
     $lineText = $lines[$index]
-    write-host "Determine $lineText $value"
+    #write-host "Determine $lineText $value"
     $global:cfgValue =  $value.Trim()
     $global:cfg = $lineText.Split('¦')[0].Trim()
     switch -Regex ($lineText) {
-        "repo" { Set-GitRepo $global:cfgValue; $branch = Get-GitBranch ; Set-GitBranch $branch; return "DefaultAction" }
+        "repo" { Set-GitRepo $global:cfgValue; return "RepoSet" }
         "branch" { Set-GitBranch $global:cfgValue; return "BuildLlama" }
         "build" { EditConfig $global:cfg ; return "BuildLlama" }
         default { EditConfig $global:cfg ; return "DefaultAction" }
@@ -457,11 +455,14 @@ function DetermineAction($index, $value) {
 }
 
 function PerformAction($action, $value) {
-    write-host "Perform $action $value"
+    #write-host "Perform $action $value"
     switch ($action) {
+        "RepoSet" { 
+            [System.Windows.Forms.MessageBox]::Show("The repo for Llama.Cpp has been changed, you must set the branch to be built.")
+        }
         "BuildLlama" { 
             # Build the new branch.
-            $global:cfgValue = $true; $global:cfg = "rebuild"; EditConfig $global:cfg # get-set the flag for $rebuild.
+            $global:cfgValue = "True"; $global:cfg = "rebuild"; EditConfig $global:cfg # get-set the flag for $rebuild.
             [System.Windows.Forms.MessageBox]::Show("Llama.Cpp has been scheduled to be rebuilt.")
             SetButton
         }
