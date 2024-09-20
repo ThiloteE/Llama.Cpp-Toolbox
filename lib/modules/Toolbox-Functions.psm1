@@ -44,8 +44,6 @@ function ListScripts {
 function Get-ComboBoxItems ($global:labelText) {
     $comboBox.Items.Clear()
     if ($labelText -eq "build"){$items = @("cpu", "vulkan", "cuda")}
-    if ($labelText -eq "release_branch"){Set-Location $path\llama.cpp;$items = git tag -l "b*" | Sort-Object -Descending}
-    if ($labelText -eq "dev_branch"){Set-Location $path\llama.cpp;$items = git branch -a}
     foreach ($item in $items) {
         $comboBox.Items.Add($item)
     }

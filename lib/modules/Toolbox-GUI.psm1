@@ -395,8 +395,9 @@ function ConfigForm {
             }
         }
     }
-    
+
     CreateFormControls
+    RefreshBranchComboBox
     $form.ShowDialog()
 }
 
@@ -483,43 +484,47 @@ function RefreshBranchComboBox {
     $repo = RetrieveConfig $global:cfg
     $currentBranch = git rev-parse --abbrev-ref HEAD
 
-    # Find the branch ComboBox
+    # Find the branch ComboBoxes
     foreach ($index in $global:comboBoxes.Keys) {
         $line = $lines[$index]
         if ($line -match "dev_branch") {
             $dev_branchComboBox = $global:comboBoxes[$index]
             $dev_branchIndex = $index
-            break
         }
         if ($line -match "release_branch") {
             $release_branchComboBox = $global:comboBoxes[$index]
             $release_branchIndex = $index
-            break
         }
     }
 
     if ($dev_branchComboBox -ne $null) {
         $dev_branchComboBox.Items.Clear()
-        $dev_branches = git ls-remote --heads https://github.com/$repo | ForEach-Object { ($_ -split '/')[-1] }
+        $dev_branches = git branch -a
+
         foreach ($dev_branch in $dev_branches) {
+            $dev_branch = $dev_branch.Trim()
+            
             if ($dev_branch -match "HEAD") {
                 continue
             }
+
             $dev_branch = $dev_branch -replace '^\* ', ''
+
             if ($dev_branch -match "remotes/origin/(.+)") {
                 $dev_branch = $matches[1]
             }
+
             $dev_branchComboBox.Items.Add($dev_branch.Trim())
-            if ($dev_branch -eq $currentBranch) {
-                $dev_branchComboBox.SelectedItem = $dev_branch
-            }
-            # If no item was selected (perhaps current branch is not in the list), select the first item
-            if ($dev_branchComboBox.SelectedIndex -eq -1 -and $dev_branchComboBox.Items.Count -gt 0) {
-                $dev_branchComboBox.SelectedIndex = 0
-            }
-        $dev_branchComboBox.SelectedIndex = 0
+        }
+
+        $currentBranchItem = $dev_branchComboBox.Items | Where-Object { $_ -eq $currentBranch }
+        if ($currentBranchItem) {
+            $dev_branchComboBox.SelectedItem = $currentBranchItem
+        } elseif ($dev_branchComboBox.Items.Count -gt 0) {
+            $dev_branchComboBox.SelectedIndex = 0
         }
     }
+
     if ($release_branchComboBox -ne $null) {
         $release_branchComboBox.Items.Clear()
         $release_branches = git tag -l "b*" | Sort-Object -Descending
