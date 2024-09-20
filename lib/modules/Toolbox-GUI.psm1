@@ -531,16 +531,15 @@ function RefreshBranchComboBox {
 
     if ($isDevBranch) {
         $dev_branchComboBox.SelectedItem = $currentBranch
-        $release_branchComboBox.SelectedIndex = -1
+        $release_branchComboBox.Text = ""
     } elseif ($isReleaseBranch) {
-        $dev_branchComboBox.SelectedIndex = -1
+        $dev_branchComboBox.Text = ""
         $release_branchComboBox.SelectedItem = $currentBranch
     } else {
         # If the current branch is neither in dev nor release, clear both selections
         $dev_branchComboBox.SelectedIndex = -1
         $release_branchComboBox.SelectedIndex = -1
     }
-
     Write-Host "Current Branch: $currentBranch"
     Write-Host "Selected Dev Branch: $($dev_branchComboBox.SelectedItem)"
     Write-Host "Selected Release Branch: $($release_branchComboBox.SelectedItem)"
