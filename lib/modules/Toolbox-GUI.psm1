@@ -353,7 +353,7 @@ function ConfigForm {
         
         foreach ($index in 0..($lines.Count - 1)) {
             $line = $lines[$index]
-            if ($line -ne "" -and $line -notmatch "Toolbox" -and $line -notmatch "config.txt" -and $line -notmatch "Config-Version" -and $line -notmatch "help" -and $line -notmatch "rebuild") {
+            if ($line -ne "" -and $line -notmatch "Toolbox" -and $line -notmatch "config.txt" -and $line -notmatch "Config-Version" -and $line -notmatch "help" -and $line -notmatch "rebuild"-and $line.Split('¦')[0].Trim() -ne "branch") {
                 $parts =  $line.Split('¦')
                 $global:labelText = $parts[0].Trim()
                 $textBoxText = $parts[1].Trim()
@@ -447,7 +447,7 @@ function DetermineAction($index, $value) {
     $global:cfgValue =  $value.Trim()
     $global:cfg = $lineText.Split('¦')[0].Trim()
     switch -Regex ($lineText) {
-        "repo" { Set-GitRepo $global:cfgValue; return "RepoSet" }
+        "repo" { Set-GitRepo $global:cfgValue; RefreshBranchComboBox ; return "RepoSet" }
         "branch" { Set-GitBranch $global:cfgValue; return "BuildLlama" }
         "build" { EditConfig $global:cfg ; return "BuildLlama" }
         default { EditConfig $global:cfg ; return "DefaultAction" }
@@ -472,5 +472,62 @@ function PerformAction($action, $value) {
     }
 }
 
+function RefreshBranchComboBox {
+    $dev_branchComboBox = $null
+    $dev_branchIndex = -1
+    $release_branchComboBox = $null
+    $release_branchIndex = -1
+    
+    Set-Location $path\llama.cpp
+    $global:cfg = "repo"
+    $repo = RetrieveConfig $global:cfg
+    $currentBranch = git rev-parse --abbrev-ref HEAD
+
+    # Find the branch ComboBox
+    foreach ($index in $global:comboBoxes.Keys) {
+        $line = $lines[$index]
+        if ($line -match "dev_branch") {
+            $dev_branchComboBox = $global:comboBoxes[$index]
+            $dev_branchIndex = $index
+            break
+        }
+        if ($line -match "release_branch") {
+            $release_branchComboBox = $global:comboBoxes[$index]
+            $release_branchIndex = $index
+            break
+        }
+    }
+
+    if ($dev_branchComboBox -ne $null) {
+        $dev_branchComboBox.Items.Clear()
+        $dev_branches = git ls-remote --heads https://github.com/$repo | ForEach-Object { ($_ -split '/')[-1] }
+        foreach ($dev_branch in $dev_branches) {
+            if ($dev_branch -match "HEAD") {
+                continue
+            }
+            $dev_branch = $dev_branch -replace '^\* ', ''
+            if ($dev_branch -match "remotes/origin/(.+)") {
+                $dev_branch = $matches[1]
+            }
+            $dev_branchComboBox.Items.Add($dev_branch.Trim())
+            if ($dev_branch -eq $currentBranch) {
+                $dev_branchComboBox.SelectedItem = $dev_branch
+            }
+            # If no item was selected (perhaps current branch is not in the list), select the first item
+            if ($dev_branchComboBox.SelectedIndex -eq -1 -and $dev_branchComboBox.Items.Count -gt 0) {
+                $dev_branchComboBox.SelectedIndex = 0
+            }
+        $dev_branchComboBox.SelectedIndex = 0
+        }
+    }
+    if ($release_branchComboBox -ne $null) {
+        $release_branchComboBox.Items.Clear()
+        $release_branches = git tag -l "b*" | Sort-Object -Descending
+        foreach ($release_branch in $release_branches) {
+            $release_branchComboBox.Items.Add($release_branch.Trim())
+        }
+        $release_branchComboBox.SelectedIndex = 0
+    }
+}
 
 Export-ModuleMember -Function * -Variable * -Alias *

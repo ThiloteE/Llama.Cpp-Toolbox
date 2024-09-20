@@ -13,6 +13,8 @@ rebuild¦0
 build¦default
 repo¦ggerganov/llama.cpp.git
 branch¦master
+dev_branch¦
+release_branch¦
 symlinkdir¦$path\Symlinks
 maxCtx¦4096
 show¦symlink
