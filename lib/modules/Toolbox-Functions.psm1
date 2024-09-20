@@ -312,7 +312,7 @@ function Update-Log {
 
 # Change the branch to use, $branch is set when changed in ConfigForm.
 function Set-GitBranch ($branch) {
-    $global:cfgValue = $branch; EditConfig $global:cfg # Update config with new value.
+    $global:cfg = "branch" ; $global:cfgValue = $branch; EditConfig $global:cfg # Update config with new value.
     git submodule deinit -f --all
     git checkout $branch # Change branch using Git.
     git reset --hard $branch # Remove changes from other repo/branch.
@@ -322,7 +322,7 @@ function Set-GitBranch ($branch) {
 
 # Change the repo to use, $repo is set when changed in ConfigForm.
 function Set-GitRepo ($repo) {
-    $global:cfgValue = $repo; EditConfig $global:cfg # Update config with new value.
+    $global:cfg = "repo" ; $global:cfgValue = $repo; EditConfig $global:cfg # Update config with new value.
     git remote set-url origin https://github.com/$repo # Change repo using Git.
     $fetch = Invoke-Expression "git fetch" # Check for any changes using Git.
     git submodule deinit -f --all
