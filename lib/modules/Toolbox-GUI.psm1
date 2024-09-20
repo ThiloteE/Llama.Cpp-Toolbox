@@ -17,11 +17,11 @@ $main_form.MaximumSize = New-Object System.Drawing.Size(750, 1000)
 
 $menuStrip1 = New-object system.windows.forms.menustrip
 $fileMenu = New-Object System.Windows.Forms.ToolStripMenuItem
-$fileMenu.Text   = "File"
+$fileMenu.Text = "File"
 $fileMenu.ShortcutKeyDisplayString="Ctrl+F"
 
 $configItem = New-Object System.Windows.Forms.ToolStripMenuItem
-$configItem.Text   = "Config"
+$configItem.Text = "Config"
 $configItem.Add_Click({ConfigForm})
 
 $updaterLlama  = New-Object System.Windows.Forms.ToolStripMenuItem
@@ -113,37 +113,112 @@ $Label3.Location  = New-Object System.Drawing.Point(60,65)
 $Label3.AutoSize = $true
 $main_form.Controls.Add($Label3)
 
-# Button to check for update.
-$Button = New-Object System.Windows.Forms.Button
-$Button.Location = New-Object System.Drawing.Size(5,29)
-$Button.Size = New-Object System.Drawing.Size(100,23)
-$Button.Text = "Update"
-$main_form.Controls.Add($Button)
+function SetButton {
+    # Check if the button already exists
+    $existingButton = $main_form.Controls["BUL_Button"]
 
-# 'Update' button action.
-$Button.Add_Click({
-    # Function to update from list of LLMs.
-    $label3.Text = "";$TextBox2.Text = "" # Clear the text.
-    $selectedDirectory = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
-    If ($selectedDirectory -eq $null) {$Label3.Text = "List updated, select an LLM to check git status."}
-    Else {
-        Set-Location $models\$selectedDirectory
-        # Check for any updates using Git.
-        $gitstatus = Invoke-Expression "git status"
-        $TextBox2.Text = $gitstatus
-        If ($gitstatus -match "up to date") {
-        $Label3.Text = "No changes to git detected."
+    $global:cfg = "rebuild"
+    $global:rebuild = RetrieveConfig $global:cfg # get-set the flag for $rebuild.
+
+    $buttonClickAction = {
+        if($global:rebuild -eq "True"){
+            $note = "Please be patient, this may take a while. $symlinkdir`n`nContinue?"
+            $halt = Confirm # Inform the user this will take a while.
+            if($halt -eq 0){BuildLlama}
+        } else {
+            # Function to 'update' from list of LLMs.
+            $label3.Text = ""
+            $TextBox2.Text = "" # Clear the text.
+            $selectedDirectory = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
+            If ($selectedDirectory -eq $null) {
+                $Label3.Text = "List updated, select an LLM to check git status."
+            } Else {
+                Set-Location $models\$selectedDirectory
+                # Check for any updates using Git.
+                $gitstatus = Invoke-Expression "git status"
+                $TextBox2.Text = $gitstatus
+                If ($gitstatus -match "up to date") {
+                    $Label3.Text = "No changes to git detected."
+                } Else {
+                    $Label3.Text =  'Fetching changes...'
+                    $gitstatus = Invoke-Expression "git pull"
+                    $log_name = "$selectedDirectory"
+                    Update-Log
+                    $Label3.Text =  'Model updated!'
+                }
             }
-        Else {
-        $Label3.Text =  'Fetching changes...'
-        $gitstatus = Invoke-Expression "git pull"
-        $log_name = "$selectedDirectory"
-        Update-Log
-        $Label3.Text =  'Model updated!'
-            }
+            ListModels
         }
-    ListModels}
-)
+    }
+
+    if ($existingButton) {
+        $existingButton.Text = if ($global:rebuild -eq "True") {"Rebuild"} else {"Update"}
+        # Update the existing button's click event
+        $existingButton.remove_Click($existingButton.Click)
+        $existingButton.Add_Click($buttonClickAction)
+    } else {
+        # Button doesn't exist, create a new one
+        $Button = New-Object System.Windows.Forms.Button
+        $Button.Name = "BUL_Button" # Give the button a unique name
+        $Button.Location = New-Object System.Drawing.Size(5,29)
+        $Button.Size = New-Object System.Drawing.Size(100,23)
+        $Button.Text = if($global:rebuild -eq "True"){"Rebuild"}else{"Update"}
+        $main_form.Controls.Add($Button)
+
+        if($global:rebuild -eq "True"){$label3.Text = "Remember to rebuild to use your updates."}
+        # Add click event to the new button
+        $Button.Add_Click($buttonClickAction)
+    }
+}
+
+function SetaButton {
+    # Check if the button already exists
+    $existingButton = $main_form.Controls["BUL_Button"]
+
+    $global:cfg = "rebuild"; $global:rebuild = RetrieveConfig $global:cfg # get-set the flag for $rebuild.
+    if ($existingButton) {
+        $existingButton.Text = if ($global:rebuild) {"Rebuild"} else {"Update"}
+    } else {
+        # Button doesn't exist, create a new one
+        $Button = New-Object System.Windows.Forms.Button
+        $Button.Name = "BUL_Button" # Give the button a unique name
+        $Button.Location = New-Object System.Drawing.Size(5,29)
+        $Button.Size = New-Object System.Drawing.Size(100,23)
+        $Button.Text = if($global:rebuild -eq "True"){"Rebuild"}else{"Update"}
+        $main_form.Controls.Add($Button)
+
+        if($global:rebuild -eq "True"){$label3.Text = "Remember to rebuild to use your updates."}
+        # 'Update' or 'Rebuild' button action.
+        $Button.Add_Click({
+            if($global:rebuild -eq "True"){
+            $note = "Please be patient, this may take a while. $symlinkdir`n`nContinue?" ; $halt = Confirm # Inform the user this will take a while.
+            if($halt -eq 0){BuildLlama}
+            } else {
+                # Function to 'update' from list of LLMs.
+                $label3.Text = "";$TextBox2.Text = "" # Clear the text.
+                $selectedDirectory = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
+                If ($selectedDirectory -eq $null) {$Label3.Text = "List updated, select an LLM to check git status."}
+                Else {
+                    Set-Location $models\$selectedDirectory
+                    # Check for any updates using Git.
+                    $gitstatus = Invoke-Expression "git status"
+                    $TextBox2.Text = $gitstatus
+                    If ($gitstatus -match "up to date") {
+                    $Label3.Text = "No changes to git detected."
+                        }
+                    Else {
+                    $Label3.Text =  'Fetching changes...'
+                    $gitstatus = Invoke-Expression "git pull"
+                    $log_name = "$selectedDirectory"
+                    Update-Log
+                    $Label3.Text =  'Model updated!'
+                        }
+                    }
+                ListModels
+            }
+        })
+    }
+}
 
 # Textbox for output.
 $TextBox2 = New-Object System.Windows.Forms.TextBox
@@ -264,8 +339,8 @@ function AboutForm {
 
 function ConfigForm {
     # Read lines from the configuration file
-    $script:lines = Get-Content $path\config.txt
-    
+    $lines = Get-Content $path\config.txt
+
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "Config Llama.cpp-Toolbox"
     $form.Size = New-Object System.Drawing.Size(550, 300)
@@ -287,62 +362,83 @@ function ConfigForm {
     $saveButton = New-Object System.Windows.Forms.ToolStripButton
     $saveButton.Text = "Save"
     $saveButton.Add_Click({
-        foreach ($index in $script:textBoxes.Keys) {
-            $parts = $script:lines[$index].Split('¦')
+        foreach ($index in $script:textBoxes.Keys + $script:comboBoxes.Keys) {
+            $parts = $lines[$index].Split('¦')
             if ($script:toggleButtons.ContainsKey($index)) {
                 $parts[0] = if ($script:toggleButtons[$index].Text -eq "show") { "hide" } else { "show" }
             }
-            $parts[1] = $script:textBoxes[$index].Text.Trim()
-            $script:lines[$index] = $parts -join '¦'
+            if ($script:textBoxes.ContainsKey($index)) {
+                $parts[1] = $script:textBoxes[$index].Text.Trim()
+            } elseif ($script:comboBoxes.ContainsKey($index)) {
+                $parts[1] = $script:comboBoxes[$index].Text.ToString().Trim()
+            }
+            $lines[$index] = $parts -join '¦'
         }
     
         # Save the updated content back to the file without adding a newline at the end
-        $script:lines -join "`r`n" | Set-Content -Path "$path\config.txt" -NoNewline
+        $lines -join "`r`n" | Set-Content -Path "$path\config.txt" -NoNewline
 
         [System.Windows.Forms.MessageBox]::Show("Configuration saved successfully.", "Save Complete")
     
-        # Refresh the form
-        CreateFormControls
+        # Refresh the form.
         ListScripts
+        CreateFormControls
     })
     $toolStrip.Items.Add($saveButton)
 
-    $script:textBoxes = @{}
-    $script:toggleButtons = @{}
-    $script:commitButtons = @{}
-    
+    $global:textBoxes = @{}
+    $global:comboBoxes = @{}
+    $global:toggleButtons = @{}
+    $global:commitButtons = @{}
+    $global:buttonIndices = @{}
+
     function CreateFormControls {
         $panel.Controls.Clear()
-        $script:textBoxes.Clear()
-        $script:toggleButtons.Clear()
-        $script:commitButtons.Clear()
-        
+        $global:textBoxes.Clear()
+        $global:comboBoxes.Clear()
+        $global:toggleButtons.Clear()
+        $global:commitButtons.Clear()
+        $global:buttonIndices.Clear()
+
         $yPosition = 10
         
-        foreach ($index in 0..($script:lines.Count - 1)) {
-            $line = $script:lines[$index]
-            if ($line -ne "" -and $line -notmatch "Toolbox" -and $line -notmatch "config.txt" -and $line -notmatch "Config-Version" -and $line -notmatch "help") {
-                $parts = $line.Split('¦')
-                $labelText = $parts[0].Trim()
+        foreach ($index in 0..($lines.Count - 1)) {
+            $line = $lines[$index]
+            if ($line -ne "" -and $line -notmatch "Toolbox" -and $line -notmatch "config.txt" -and $line -notmatch "Config-Version" -and $line -notmatch "help" -and $line -notmatch "rebuild") {
+                $parts =  $line.Split('¦')
+                $global:labelText = $parts[0].Trim()
                 $textBoxText = $parts[1].Trim()
+                $comboBoxText = $parts[1].Trim()
                 
                 $label = New-Object System.Windows.Forms.Label
                 $label.Text = $labelText
                 $label.AutoSize = $true
                 $label.Location = New-Object System.Drawing.Point(10, $yPosition)
                 $panel.Controls.Add($label)
-                
-                $textBox = New-Object System.Windows.Forms.TextBox
-                $textBox.Text = $textBoxText
-                $textBox.Location = New-Object System.Drawing.Point(120, $yPosition)
-                $textBox.Width = 300
-                $panel.Controls.Add($textBox)
-                
-                $script:textBoxes[$index] = $textBox
-                
-                if ($labelText -match "show|hide") {
+
+                if ($global:labelText -match "show|hide") {
+                    $textBox = New-Object System.Windows.Forms.TextBox
+                    $textBox.Text = $textBoxText
+                    $textBox.Location = New-Object System.Drawing.Point(120, $yPosition)
+                    $textBox.Width = 300
+                    $global:textBoxes[$index] = $textBox
+                    $panel.Controls.Add($textBox)
                     ToggleButton $index $yPosition $labelText
                 } else {
+                    if ($global:labelText -match "build|branch"){
+                    $global:comboBox = New-Object System.Windows.Forms.ComboBox
+                    $comboBox.SelectedText = $comboBoxText
+                    $comboBox.Location = New-Object System.Drawing.Point(120, $yPosition)
+                    $comboBox.Width = 300
+                    $global:comboBoxes[$index] = $comboBox ; $panel.Controls.Add($comboBox)
+                    Get-ComboBoxItems $global:labelText
+                    } else {
+                    $global:textBox = New-Object System.Windows.Forms.TextBox
+                    $textBox.Text = $textBoxText
+                    $textBox.Location = New-Object System.Drawing.Point(120, $yPosition)
+                    $textBox.Width = 300
+                    $global:textBoxes[$index] = $textBox ; $panel.Controls.Add($textBox)
+                    }
                     CommitButton $index $yPosition
                 }
                 
@@ -356,51 +452,70 @@ function ConfigForm {
 }
 
 function ToggleButton($index, $yPos, $labelText) {
-    $ButtonT = New-Object System.Windows.Forms.Button
+    $global:ButtonT = New-Object System.Windows.Forms.Button
+    $global:buttonIndices[$ButtonT] = $index
     $ButtonT.Location = New-Object System.Drawing.Point(430, $yPos)
     $ButtonT.Size = New-Object System.Drawing.Size(80,23)
     $ButtonT.Text = if ($labelText -match "show") { "hide" } else { "show" }
     $panel.Controls.Add($ButtonT)
     
-    $script:toggleButtons[$index] = $ButtonT
+    $global:toggleButtons[$index] = $ButtonT
     $ButtonT.Add_Click({
         $this.Text = if ($this.Text -eq "show") { "hide" } else { "show" }
     })
 }
 
-function CommitButton($index, $yPos) {
-    $ButtonC = New-Object System.Windows.Forms.Button
-    $ButtonC.Location = New-Object System.Drawing.Point(430, $yPos)
-    $ButtonC.Size = New-Object System.Drawing.Size(80,23)
-    $ButtonC.Text = "Commit"
-    $panel.Controls.Add($ButtonC)
-    
-    $script:commitButtons[$index] = $ButtonC
-    $ButtonC.Add_Click({
-        $lineText = $script:lines[$index]
-        $action = DetermineAction $lineText
-        PerformAction $action $script:textBoxes[$index].Text
+function CommitButton($index, $yPosition) {
+    $button = New-Object System.Windows.Forms.Button
+    $global:buttonIndices[$button] = $index
+    $button.Location = New-Object System.Drawing.Point(430, $yPosition)
+    $button.Size = New-Object System.Drawing.Size(80, 23)
+    $button.Text = "Commit"
+    $panel.Controls.Add($button)
+
+    # Directly assign to the dictionary
+    $global:commitButtons[$index] = $button
+
+    $button.Add_Click({
+        $clickedButtonIndex = $global:buttonIndices[$this]
+        $labelText = $lines[$clickedButtonIndex]
+        $global:labelText = $labelText.Split('¦')[0].Trim()
+        write-host "$global:labelText"
+        $value = if ($global:labelText -match "build|branch") {
+            $global:comboBoxes[$clickedButtonIndex].Text
+        } else {
+            $global:textBoxes[$clickedButtonIndex].Text
+        }
+        # Replace with your actual commit action logic
+        $action = DetermineAction $clickedButtonIndex $value
+        PerformAction $action $value
     })
 }
 
-function DetermineAction($lineText) {
+function DetermineAction($index, $value) {
+    $lineText = $lines[$index]
+    write-host "Determine $lineText $value"
+    $global:cfgValue =  $value.Trim()
+    $global:cfg = $lineText.Split('¦')[0].Trim()
     switch -Regex ($lineText) {
-        "Action1" { return "Action1" }
-        "Action2" { return "Action2" }
-        default { return "DefaultAction" }
+        "repo" { Set-GitRepo $global:cfgValue; $branch = Get-GitBranch ; Set-GitBranch $branch; return "DefaultAction" }
+        "branch" { Set-GitBranch $global:cfgValue; return "BuildLlama" }
+        "build" { EditConfig $global:cfg ; return "BuildLlama" }
+        default { EditConfig $global:cfg ; return "DefaultAction" }
     }
 }
 
 function PerformAction($action, $value) {
+    write-host "Perform $action $value"
     switch ($action) {
-        "Action1" { 
-            [System.Windows.Forms.MessageBox]::Show("Performing Action1 with value: $value", "Action1")
+        "BuildLlama" { 
+            # Build the new branch.
+            $global:cfgValue = $true; $global:cfg = "rebuild"; EditConfig $global:cfg # get-set the flag for $rebuild.
+            [System.Windows.Forms.MessageBox]::Show("Llama.Cpp has been scheduled to be rebuilt.")
+            SetButton
         }
-        "Action2" { 
-            [System.Windows.Forms.MessageBox]::Show("Performing Action2 with value: $value", "Action2")
-        }
-        default { 
-            [System.Windows.Forms.MessageBox]::Show("Performing Default Action with value: $value", "Default Action")
+        "DefaultAction" { 
+            [System.Windows.Forms.MessageBox]::Show("Comitted record $global:cfg¦$value")
         }
     }
 }

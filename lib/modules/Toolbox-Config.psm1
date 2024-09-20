@@ -6,9 +6,10 @@ $global:version_cfg = "0.1.x"
 
 # The config text for this release.
 $script:cfgText = "Llama.Cpp-Toolbox¦$version
-Config-Version¦$version_cfg
+Config-Version¦$global:version_cfg
 config.txt¦This file stores variables to be used for updates & customization. If this file is modified incorrectly, regret happens.
 help¦Separate arguments with a space like this...llama-quantize.exe Q4_0 --leave-output-tensor
+rebuild¦0
 build¦default
 repo¦ggerganov/llama.cpp.git
 branch¦master
@@ -140,19 +141,18 @@ function EditConfig ($global:cfg) {
 function CfgBuild {
     try {
         if ((nvcc --version) -and (vulkaninfo --summary)){
-        $pattern = '(^\bc?$)|(^\bv?$)|(^\bcpu?$)'
-        #$pattern = '[vc]|cpu'
-        while ($build -cnotmatch $pattern) {clear; $build = Read-Host "Build for use with vulkan cuda or cpu? (v/c/cpu)"}
+        $pattern = '(^\bcuda$)|(^\bvulkan$)|(^\bcpu$)'
+        while ($build -cnotmatch $pattern) {clear; $build.ToLower() = Read-Host "Build for use with vulkan cuda or cpu?"}
         }
     } catch {
-        try {if (nvcc --version){$build = 'c'}
+        try {if (nvcc --version){$build = 'cuda'}
         } catch {Write-Host "( ) Nvidia CudaToolkit required for NVIDIA GPU build"}
-        try {if (vulkaninfo --summary){$build = 'v'}
+        try {if (vulkaninfo --summary){$build = 'vulkan'}
         } catch {Write-Host "( ) AMD VulkanSDK required for AMD GPU build"}
     } finally {
-    if ($build -ne 'v' -and $build -ne 'c'){$build = 'cpu'; Write-Host "(*) Build for CPU Only"}
-    if($build -eq 'c') {Write-Host "(*) Nvidia CudaToolkit"}
-    if ($build -eq 'v') {Write-Host "(*) AMD VulkanSDK"}
+    if ($build -ne 'vulkan' -and $build -ne 'cuda'){$build = 'cpu'; Write-Host "(*) Build for CPU Only"}
+    if($build -eq 'cuda') {Write-Host "(*) Nvidia CudaToolkit"}
+    if ($build -eq 'vulkan') {Write-Host "(*) AMD VulkanSDK"}
     # Add config.txt file to store variables.
     New-Item -ItemType File -Path $path\config.txt
     RestoreConfig # Fill in the config.txt file from this release.

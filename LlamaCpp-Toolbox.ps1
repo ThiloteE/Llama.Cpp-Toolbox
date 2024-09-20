@@ -54,6 +54,7 @@ function InstallToolbox {
 function Main {
     if (Test-Path "$path\config.txt") { # If installed and config.txt exists run the program.
         VersionCheck # Edit the config if the program is updated.
+        SetButton # Check for rebuild flag.
         GitIgnore # Rebuild the list each init, if something is tracked it will not be ignored.
         ListScripts # Rebuild the list each init.
         ListModels # Rebuild the list each init.

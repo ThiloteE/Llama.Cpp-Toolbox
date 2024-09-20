@@ -6,12 +6,16 @@ $global:version_func = "0.1.x"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck {
+    $global:cfg = "rebuild"; $global:rebuild = RetrieveConfig $global:cfg # get-set the flag for $rebuild.
     $global:cfg = "Llama.Cpp-Toolbox"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for old Toolbox version.
     if ($version -ne $global:cfgVersion){
     $global:cfgValue = $version ; EditConfig $global:cfg # Update config with new value.
     # Get the version of the config text, if it matches the file we can skip this update.
     $global:cfg = "Config-Version"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for version.
-    if ($cfgVersion -ne $version_cfg){UpgradeConfig} # Update the config with new functionality as needed.
+    if ($cfgVersion -ne $version_cfg){
+        $global:cfgValue = $version_cfg ; EditConfig $global:cfg # Update config with new value.
+        UpgradeConfig
+        } # Update the config with new functionality as needed.
     }
 }
 
@@ -34,6 +38,18 @@ function ListScripts {
     Get-Content -Path "$path\config.txt" | Where-Object {$_.TrimStart().StartsWith("show¦")} | ForEach-Object {
         $ComboBox2.Items.Add($_.Split('¦')[1].Trim())
     }
+}
+
+# Get list of combobox items for ConfigForm.
+function Get-ComboBoxItems ($global:labelText) {
+    $comboBox.Items.Clear()
+    if ($labelText -eq "build"){$items = @("cpu", "vulkan", "cuda")}
+    if ($labelText -eq "branch"){Set-Location $path\llama.cpp;$items = git tag -l "b*" | Sort-Object -Descending}
+    if ($items -eq $null){$items = git branch -a}
+    foreach ($item in $items) {
+        $comboBox.Items.Add($item)
+    }
+
 }
 
 # Create and update .gitignore if something is tracked it will not be ignored.
@@ -211,8 +227,11 @@ function UpdateToolbox {
 
 # Update Llama.cpp if repo is changed or if updates found in repo.
 function UpdateLlama {
-    $global:cfg = "repo"; $cfgRepo = RetrieveConfig $global:cfg # get-set the flag for repo.
     cd $path\llama.cpp
+    git checkout master
+    $branch = Get-GitBranch
+    $global:cfg = "branch"
+    Set-GitBranch $branch.Trim()
     $fetch = Invoke-Expression "git fetch" # Check for any updates using Git.
     $gitstatus = Invoke-Expression "git status"
     $TextBox2.Text = $gitstatus
@@ -243,19 +262,20 @@ function InstallLlama {
     Set-Location -Path $path\llama.cpp
     $branch = Get-NewRelease # Get the latest release version.
     Set-GitBranch $branch # Set the cfg to this branch then build it.
+    BuildLlama
     Main # Everything is ready to start the GUI.
 }
 
 # Build Llama as needed.
 function BuildLlama {
     $global:cfg = "build"; $build = RetrieveConfig $global:cfg # get-set the flag for $build.
-    if($build -eq 'v') {
+    if($build -eq 'vulkan') {
  		cd $path\llama.cpp
 		rd -r build
 		mkdir build
 		cmake -B .\build -DGGML_VULKAN=ON -DGGML_NATIVE=ON
 		cmake --build build --config Release -j $NumberOfCores
-	} elseif ($build -eq 'c') {
+	} elseif ($build -eq 'cuda') {
 		cd $path\llama.cpp
 		rd -r build
 		mkdir build
@@ -268,6 +288,9 @@ function BuildLlama {
 		cmake -B .\build -DGGML_NATIVE=ON
 		cmake --build build --config Release -j $NumberOfCores
 	}
+
+$global:cfgValue = $false; $global:cfg = "rebuild"; EditConfig $global:cfg # get-set the flag for $rebuild.
+SetButton
 $label3.Text = "Build completed."
 }
 
@@ -288,30 +311,23 @@ function Update-Log {
 
 # Change the branch to use, $branch is set when changed in ConfigForm.
 function Set-GitBranch ($branch) {
-    $global:cfg = "branch"; $cfgBranch = RetrieveConfig $global:cfg # get-set the flag for $branch.
-    if ($branch -ne $cfgBranch){$global:cfgValue = $branch; EditConfig $global:cfg # Update config with new value.
-        git submodule deinit -f --all
-        git checkout $branch # Change branch using Git.
-        git reset --hard $branch # Remove changes from other repo/branch.
-        git submodule update --init --recursive
-        $label3.Text = "Branch changed, rebuilding..."
-        BuildLlama # Build the new branch.
-    }
+    $global:cfgValue = $branch; EditConfig $global:cfg # Update config with new value.
+    git submodule deinit -f --all
+    git checkout $branch # Change branch using Git.
+    git reset --hard $branch # Remove changes from other repo/branch.
+    git submodule update --init --recursive
+    $label3.Text = "Branch changed, remember to rebuild..."
 }
 
 # Change the repo to use, $repo is set when changed in ConfigForm.
-function Set-GitRepo {
-    $global:cfg = "repo"; $cfgRepo = RetrieveConfig $global:cfg # get-set the flag for $repo.
-    if ($repo -ne $cfgRepo){$global:cfgValue = $repo; EditConfig $global:cfg # Update config with new value.
-        git remote set-url origin https://github.com/$repo # Change repo using Git.
-        $fetch = Invoke-Expression "git fetch" # Check for any changes using Git.
-        $global:cfg = "branch"; $global:cfgValue = Get-GitBranch; EditConfig $global:cfg # get-set the flag for $repo.
-        git submodule deinit -f --all
-        git reset --hard $branch # Remove changes from other repo/branch.
-        git submodule update --init --recursive
-        $label3.Text = "Repo changed, rebuilding..."
-        BuildLlama # Build with the new repo.
-    }
+function Set-GitRepo ($repo) {
+    $global:cfgValue = $repo; EditConfig $global:cfg # Update config with new value.
+    git remote set-url origin https://github.com/$repo # Change repo using Git.
+    $fetch = Invoke-Expression "git fetch" # Check for any changes using Git.
+    git submodule deinit -f --all
+    git reset --hard origin # Remove changes from other repo/branch.
+    git submodule update --init --recursive
+    $label3.Text = "Repo changed, remember to rebuild..."
 }
 
 # Llama.Cpp releases use "b####" tags.
