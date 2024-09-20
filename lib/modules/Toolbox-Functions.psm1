@@ -268,6 +268,7 @@ function InstallLlama {
 
 # Build Llama as needed.
 function BuildLlama {
+    $label3.Text = “The build flag clears after a rebuild is complete. Building..."
     $global:cfg = "build"; $build = RetrieveConfig $global:cfg # get-set the flag for $build.
     if($build -eq 'vulkan') {
  		cd $path\llama.cpp
