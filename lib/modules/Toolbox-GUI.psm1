@@ -332,6 +332,7 @@ function ConfigForm {
         # Refresh the form.
         ListScripts
         CreateFormControls
+        RefreshBranchComboBox
     })
     $toolStrip.Items.Add($saveButton)
 
@@ -482,8 +483,10 @@ function RefreshBranchComboBox {
     Set-Location $path\llama.cpp
     $global:cfg = "repo"
     $repo = RetrieveConfig $global:cfg
-    $currentBranch = git rev-parse --abbrev-ref HEAD
-
+    $checkBranch = (git branch --show-current)
+    # if checkbranch is null then we are using the tag of a release.
+    if($checkBranch -ne $null){$currentBranch = $checkBranch.Trim()}else{$global:cfg = "branch"; $currentBranch = RetrieveConfig $global:cfg }
+    
     # Find the branch ComboBoxes
     foreach ($index in $global:comboBoxes.Keys) {
         $line = $lines[$index]
@@ -500,28 +503,17 @@ function RefreshBranchComboBox {
     if ($dev_branchComboBox -ne $null) {
         $dev_branchComboBox.Items.Clear()
         $dev_branches = git branch -a
-
         foreach ($dev_branch in $dev_branches) {
             $dev_branch = $dev_branch.Trim()
             
             if ($dev_branch -match "HEAD") {
                 continue
             }
-
             $dev_branch = $dev_branch -replace '^\* ', ''
-
             if ($dev_branch -match "remotes/origin/(.+)") {
                 $dev_branch = $matches[1]
             }
-
             $dev_branchComboBox.Items.Add($dev_branch.Trim())
-        }
-
-        $currentBranchItem = $dev_branchComboBox.Items | Where-Object { $_ -eq $currentBranch }
-        if ($currentBranchItem) {
-            $dev_branchComboBox.SelectedItem = $currentBranchItem
-        } elseif ($dev_branchComboBox.Items.Count -gt 0) {
-            $dev_branchComboBox.SelectedIndex = 0
         }
     }
 
@@ -531,8 +523,27 @@ function RefreshBranchComboBox {
         foreach ($release_branch in $release_branches) {
             $release_branchComboBox.Items.Add($release_branch.Trim())
         }
-        $release_branchComboBox.SelectedIndex = 0
     }
+
+    # Determine if the current branch is a dev branch or a release branch
+    $isDevBranch = $dev_branchComboBox.Items -contains $currentBranch
+    $isReleaseBranch = $release_branchComboBox.Items -contains $currentBranch
+
+    if ($isDevBranch) {
+        $dev_branchComboBox.SelectedItem = $currentBranch
+        $release_branchComboBox.SelectedIndex = -1
+    } elseif ($isReleaseBranch) {
+        $dev_branchComboBox.SelectedIndex = -1
+        $release_branchComboBox.SelectedItem = $currentBranch
+    } else {
+        # If the current branch is neither in dev nor release, clear both selections
+        $dev_branchComboBox.SelectedIndex = -1
+        $release_branchComboBox.SelectedIndex = -1
+    }
+
+    Write-Host "Current Branch: $currentBranch"
+    Write-Host "Selected Dev Branch: $($dev_branchComboBox.SelectedItem)"
+    Write-Host "Selected Release Branch: $($release_branchComboBox.SelectedItem)"
 }
 
 Export-ModuleMember -Function * -Variable * -Alias *
