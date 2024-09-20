@@ -171,55 +171,6 @@ function SetButton {
     }
 }
 
-function SetaButton {
-    # Check if the button already exists
-    $existingButton = $main_form.Controls["BUL_Button"]
-
-    $global:cfg = "rebuild"; $global:rebuild = RetrieveConfig $global:cfg # get-set the flag for $rebuild.
-    if ($existingButton) {
-        $existingButton.Text = if ($global:rebuild) {"Rebuild"} else {"Update"}
-    } else {
-        # Button doesn't exist, create a new one
-        $Button = New-Object System.Windows.Forms.Button
-        $Button.Name = "BUL_Button" # Give the button a unique name
-        $Button.Location = New-Object System.Drawing.Size(5,29)
-        $Button.Size = New-Object System.Drawing.Size(100,23)
-        $Button.Text = if($global:rebuild -eq "True"){"Rebuild"}else{"Update"}
-        $main_form.Controls.Add($Button)
-
-        if($global:rebuild -eq "True"){$label3.Text = "Remember to rebuild to use your updates."}
-        # 'Update' or 'Rebuild' button action.
-        $Button.Add_Click({
-            if($global:rebuild -eq "True"){
-            $note = "Please be patient, this may take a while. $symlinkdir`n`nContinue?" ; $halt = Confirm # Inform the user this will take a while.
-            if($halt -eq 0){BuildLlama}
-            } else {
-                # Function to 'update' from list of LLMs.
-                $label3.Text = "";$TextBox2.Text = "" # Clear the text.
-                $selectedDirectory = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
-                If ($selectedDirectory -eq $null) {$Label3.Text = "List updated, select an LLM to check git status."}
-                Else {
-                    Set-Location $models\$selectedDirectory
-                    # Check for any updates using Git.
-                    $gitstatus = Invoke-Expression "git status"
-                    $TextBox2.Text = $gitstatus
-                    If ($gitstatus -match "up to date") {
-                    $Label3.Text = "No changes to git detected."
-                        }
-                    Else {
-                    $Label3.Text =  'Fetching changes...'
-                    $gitstatus = Invoke-Expression "git pull"
-                    $log_name = "$selectedDirectory"
-                    Update-Log
-                    $Label3.Text =  'Model updated!'
-                        }
-                    }
-                ListModels
-            }
-        })
-    }
-}
-
 # Textbox for output.
 $TextBox2 = New-Object System.Windows.Forms.TextBox
 $TextBox2.Anchor = "Top, Left, Bottom"  # Resize with the form
