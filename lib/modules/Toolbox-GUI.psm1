@@ -450,7 +450,7 @@ function DetermineAction($index, $value) {
     $global:cfg = $lineText.Split('¦')[0].Trim()
     switch -Regex ($lineText) {
         "repo" { Set-GitRepo $global:cfgValue; RefreshBranchComboBox ; return "RepoSet" }
-        "branch" { Set-GitBranch $global:cfgValue; return "BuildLlama" }
+        "branch" { Set-GitBranch $global:cfgValue; RefreshBranchComboBox ; return "BuildLlama" }
         "build" { EditConfig $global:cfg ; return "BuildLlama" }
         default { EditConfig $global:cfg ; return "DefaultAction" }
     }
