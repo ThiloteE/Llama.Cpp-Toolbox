@@ -431,7 +431,6 @@ function CommitButton($index, $yPosition) {
         $clickedButtonIndex = $global:buttonIndices[$this]
         $labelText = $lines[$clickedButtonIndex]
         $global:labelText = $labelText.Split('¦')[0].Trim()
-        #write-host "$global:labelText"
         $value = if ($global:labelText -match "build|branch") {
             $global:comboBoxes[$clickedButtonIndex].Text
         } else {
@@ -443,14 +442,23 @@ function CommitButton($index, $yPosition) {
     })
 }
 
+function CleanRepo ($text) {
+    if ($text -match '([\w-]+/llama\.cpp)(\.git)?$') {
+        return $Matches[1] + ".git"
+    } else {
+        Write-Error "The input string does not end with the required pattern."
+        return $null
+    }
+}
+
 function DetermineAction($index, $value) {
     $lineText = $lines[$index]
     #write-host "Determine $lineText $value"
     $global:cfgValue =  $value.Trim()
     $global:cfg = $lineText.Split('¦')[0].Trim()
     switch -Regex ($lineText) {
-        "repo" { Set-GitRepo $global:cfgValue; RefreshBranchComboBox ; return "RepoSet" }
-        "branch" { Set-GitBranch $global:cfgValue; RefreshBranchComboBox ; return "BuildLlama" }
+        "repo" {$global:cfgValue = CleanRepo $global:cfgValue ; if($global:cfgValue -eq ""){return "Error1"}else{Set-GitRepo $global:cfgValue; RefreshBranchComboBox ; return "RepoSet" }}
+        "branch" { if($global:cfgValue -eq ""){return "Error2"}else{Set-GitBranch $global:cfgValue; RefreshBranchComboBox ; return "BuildLlama" }}
         "build" { EditConfig $global:cfg ; return "BuildLlama" }
         default { EditConfig $global:cfg ; return "DefaultAction" }
     }
@@ -459,6 +467,12 @@ function DetermineAction($index, $value) {
 function PerformAction($action, $value) {
     #write-host "Perform $action $value"
     switch ($action) {
+        "Error1" { 
+            [System.Windows.Forms.MessageBox]::Show("Input a git repo like this one 'ggerganov/llama.cpp.git'")
+        }
+        "Error2" { 
+            [System.Windows.Forms.MessageBox]::Show("You must set a branch to be built.")
+        }
         "RepoSet" { 
             [System.Windows.Forms.MessageBox]::Show("The repo for Llama.Cpp has been changed, you must set the branch to be built.")
         }
@@ -536,13 +550,11 @@ function RefreshBranchComboBox {
         $dev_branchComboBox.Text = ""
         $release_branchComboBox.SelectedItem = $currentBranch
     } else {
-        # If the current branch is neither in dev nor release, clear both selections
-        $dev_branchComboBox.SelectedIndex = -1
-        $release_branchComboBox.SelectedIndex = -1
+        # If the current branch is neither in dev nor release, force latest release.
+        $dev_branchComboBox.Text = ""
+        $release_branchComboBox.Text = Get-NewRelease
     }
-    Write-Host "Current Branch: $currentBranch"
-    Write-Host "Selected Dev Branch: $($dev_branchComboBox.SelectedItem)"
-    Write-Host "Selected Release Branch: $($release_branchComboBox.SelectedItem)"
+
 }
 
 Export-ModuleMember -Function * -Variable * -Alias *
