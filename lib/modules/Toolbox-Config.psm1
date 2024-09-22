@@ -144,7 +144,7 @@ function CfgBuild {
     try {
         if ((nvcc --version) -and (vulkaninfo --summary)){
         $pattern = '(^\bcuda$)|(^\bvulkan$)|(^\bcpu$)'
-        while ($build -cnotmatch $pattern) {clear; $build.ToLower() = Read-Host "Build for use with vulkan cuda or cpu?"}
+        while ($build -cnotmatch $pattern) {clear; $build.ToLower() = Read-Host "Build for use with 'vulkan' 'cuda' or 'cpu'?"}
         }
     } catch {
         try {if (nvcc --version){$build = 'cuda'}
