@@ -334,7 +334,15 @@ function ConfigForm {
         CreateFormControls
         RefreshBranchComboBox
     })
+
+    # Create a ToolStripButton for BranchManager
+    $bmButton = New-Object System.Windows.Forms.ToolStripButton
+    $bmButton.Text = "Branch Manager"
+    $bmButton.Add_Click({BranchManager})
+
+    # Add buttons to the ToolStrip
     $toolStrip.Items.Add($saveButton)
+    $toolStrip.Items.Add($bmButton)
 
     $global:textBoxes = @{}
     $global:comboBoxes = @{}
@@ -436,7 +444,7 @@ function CommitButton($index, $yPosition) {
         } else {
             $global:textBoxes[$clickedButtonIndex].Text
         }
-        # Replace with your actual commit action logic
+        # Commit action logic
         $action = DetermineAction $clickedButtonIndex $value
         PerformAction $action $value
     })
@@ -476,7 +484,7 @@ function DetermineAction($index, $value) {
                 try {if (vulkaninfo --help){$BuildTest = $true}
                 } catch {[System.Windows.Forms.MessageBox]::Show("AMD VulkanSDK is required for AMD GPU build.")}
                 }
-            if ($BuildTest -ne $false) {EditConfig $global:cfg ; return "BuildLlama" }{}
+            if ($BuildTest -ne $false){ EditConfig $global:cfg ; return "BuildLlama" } else { }
             }
         default { EditConfig $global:cfg ; return "DefaultAction" }
     }
@@ -570,6 +578,84 @@ function RefreshBranchComboBox {
         $release_branchComboBox.Text = Get-NewRelease
     }
 
+}
+
+function BranchManager {
+    $RepoPath = "$path\llama.cpp"
+
+    $BMform = New-Object System.Windows.Forms.Form
+    $BMform.Text = "Branch Manager"
+    $BMform.Size = New-Object System.Drawing.Size(535,200)
+    $BMform.StartPosition = "CenterScreen"
+
+    $BMpanel = New-Object System.Windows.Forms.FlowLayoutPanel
+    $BMpanel.Dock = [System.Windows.Forms.DockStyle]::Fill
+    $BMpanel.FlowDirection = [System.Windows.Forms.FlowDirection]::TopDown
+    $BMpanel.WrapContents = $false
+    $BMpanel.AutoScroll = $true
+
+    function GitBranches {
+        Set-Location $RepoPath
+        $branches = git branch --list
+        return $branches | Where-Object { $_ -notmatch '^\*?\s*(master|HEAD)$' } | ForEach-Object { $_.Trim() -replace '^\* ', '' }
+    }
+
+    function BranchList {
+        $BMpanel.Controls.Clear()
+        $branches = GitBranches
+
+        foreach ($branch in $branches) {
+            $rowPanel = New-Object System.Windows.Forms.FlowLayoutPanel
+            $rowPanel.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
+            $rowPanel.Width = 519
+            $rowPanel.Height = 30
+            $rowPanel.Margin = New-Object System.Windows.Forms.Padding(0, 0, 0, 5)
+
+            $BMlabel = New-Object System.Windows.Forms.Label
+            $BMlabel.Text = $branch
+            $BMlabel.Width = 300
+            $BMlabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+
+            $deleteButton = New-Object System.Windows.Forms.Button
+            $deleteButton.Text = "Delete"
+            $deleteButton.Width = 100
+            $deleteButton.Add_Click({
+                param($sender, $e)
+                $branchToDelete = $sender.Parent.Controls[1].Text
+                $result = [System.Windows.Forms.MessageBox]::Show("Are you sure you want to delete branch '$branchToDelete'?", "Confirm Delete", [System.Windows.Forms.MessageBoxButtons]::YesNo)
+                if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+                    Set-Location $RepoPath
+                    git branch -D $branchToDelete
+                    BranchList
+                }
+            })
+
+            $updateButton = New-Object System.Windows.Forms.Button
+            $updateButton.Text = "Update"
+            $updateButton.Width = 100
+            $updateButton.Add_Click({
+                param($sender, $e)
+                $branchToUpdate = $sender.Parent.Controls[1].Text
+                Set-Location $RepoPath
+                $currentBranch = git rev-parse --abbrev-ref HEAD
+                git checkout $branchToUpdate
+                git pull
+                git checkout $currentBranch
+                [System.Windows.Forms.MessageBox]::Show("Branch '$branchToUpdate' updated successfully!", "Update Complete")
+            })
+
+            $rowPanel.Controls.Add($deleteButton)
+            $rowPanel.Controls.Add($BMlabel)
+            $rowPanel.Controls.Add($updateButton)
+
+            $BMpanel.Controls.Add($rowPanel)
+        }
+    }
+
+    $BMform.Controls.Add($BMpanel)
+
+    BranchList
+    $BMform.ShowDialog()
 }
 
 Export-ModuleMember -Function * -Variable * -Alias *
