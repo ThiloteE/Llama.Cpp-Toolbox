@@ -488,7 +488,7 @@ function PerformAction($action, $value) {
     #write-host "Perform $action $value"
     switch ($action) {
         "Error" { 
-            
+            $ErrorMessage
         }
         "RepoSet" { 
             [System.Windows.Forms.MessageBox]::Show("The repo for Llama.Cpp has been changed, you must set the branch to be built.")
