@@ -456,22 +456,39 @@ function DetermineAction($index, $value) {
     #write-host "Determine $lineText $value"
     $global:cfgValue =  $value.Trim()
     $global:cfg = $lineText.Split('¦')[0].Trim()
+    if($value.Trim() -eq "cpu"){$BuildTest = $true}else{$BuildTest = $false}
     switch -Regex ($lineText) {
-        "repo" {$global:cfgValue = CleanRepo $global:cfgValue ; if($global:cfgValue -eq ""){return "Error1"}else{Set-GitRepo $global:cfgValue; RefreshBranchComboBox ; return "RepoSet" }}
-        "branch" { if($global:cfgValue -eq ""){return "Error2"}else{Set-GitBranch $global:cfgValue; RefreshBranchComboBox ; return "BuildLlama" }}
-        "build" { EditConfig $global:cfg ; return "BuildLlama" }
+        "repo" {
+            $global:cfgValue = CleanRepo $global:cfgValue
+            if($global:cfgValue -eq ""){ $ErrorMessage = [System.Windows.Forms.MessageBox]::Show("Input a git repo like this one 'ggerganov/llama.cpp.git'") ; return "Error"}
+            else { Set-GitRepo $global:cfgValue ; RefreshBranchComboBox ; return "RepoSet" }
+            }
+        "branch" {
+            if($global:cfgValue -eq ""){$ErrorMessage = [System.Windows.Forms.MessageBox]::Show("You must set a branch to be built.") ; return "Error"}
+            else{ Set-GitBranch $global:cfgValue ; RefreshBranchComboBox ; return "BuildLlama" }
+            }
+        "build" {
+            if($value.Trim() -eq "cuda"){
+                try {if (nvcc --version){$BuildTest = $true}
+                } catch {[System.Windows.Forms.MessageBox]::Show("Nvidia CudaToolkit is required for NVIDIA GPU build.")}
+                }
+            if($value.Trim() -eq "vulkan"){
+                try {if (vulkaninfo --summary){$BuildTest = $true}
+                } catch {[System.Windows.Forms.MessageBox]::Show("AMD VulkanSDK is required for AMD GPU build.")}
+                }
+            if ($BuildTest -ne $false) {EditConfig $global:cfg ; return "BuildLlama" }{}
+            }
         default { EditConfig $global:cfg ; return "DefaultAction" }
     }
 }
 
+
+
 function PerformAction($action, $value) {
     #write-host "Perform $action $value"
     switch ($action) {
-        "Error1" { 
-            [System.Windows.Forms.MessageBox]::Show("Input a git repo like this one 'ggerganov/llama.cpp.git'")
-        }
-        "Error2" { 
-            [System.Windows.Forms.MessageBox]::Show("You must set a branch to be built.")
+        "Error" { 
+            
         }
         "RepoSet" { 
             [System.Windows.Forms.MessageBox]::Show("The repo for Llama.Cpp has been changed, you must set the branch to be built.")
