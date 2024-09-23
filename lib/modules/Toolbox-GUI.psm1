@@ -473,7 +473,7 @@ function DetermineAction($index, $value) {
                 } catch {[System.Windows.Forms.MessageBox]::Show("Nvidia CudaToolkit is required for NVIDIA GPU build.")}
                 }
             if($value.Trim() -eq "vulkan"){
-                try {if (vulkaninfo --summary){$BuildTest = $true}
+                try {if (vulkaninfo --help){$BuildTest = $true}
                 } catch {[System.Windows.Forms.MessageBox]::Show("AMD VulkanSDK is required for AMD GPU build.")}
                 }
             if ($BuildTest -ne $false) {EditConfig $global:cfg ; return "BuildLlama" }{}
@@ -481,8 +481,6 @@ function DetermineAction($index, $value) {
         default { EditConfig $global:cfg ; return "DefaultAction" }
     }
 }
-
-
 
 function PerformAction($action, $value) {
     #write-host "Perform $action $value"

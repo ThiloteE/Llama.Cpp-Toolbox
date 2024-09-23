@@ -149,7 +149,7 @@ function CfgBuild {
     } catch {
         try {if (nvcc --version){$build = 'cuda'}
         } catch {Write-Host "( ) Nvidia CudaToolkit required for NVIDIA GPU build"}
-        try {if (vulkaninfo --summary){$build = 'vulkan'}
+        try {if (vulkaninfo --help){$build = 'vulkan'}
         } catch {Write-Host "( ) AMD VulkanSDK required for AMD GPU build"}
     } finally {
     if ($build -ne 'vulkan' -and $build -ne 'cuda'){$build = 'cpu'; Write-Host "(*) Build for CPU Only"}
