@@ -149,26 +149,13 @@ function EditConfig ($global:cfg) {
 
 # Set the build flags for the config.
 function CfgBuild {
-    try {
-        if ((nvcc --version) -and (vulkaninfo --summary)){
-        $pattern = '(^\bcuda$)|(^\bvulkan$)|(^\bcpu$)'
-        while ($build -cnotmatch $pattern) {clear; $build.ToLower() = Read-Host "Build for use with 'vulkan' 'cuda' or 'cpu'?"}
-        }
-    } catch {
-        try {if (nvcc --version){$build = 'cuda'}
-        } catch {Write-Host "( ) Nvidia CudaToolkit required for NVIDIA GPU build"}
-        try {if (vulkaninfo --help){$build = 'vulkan'}
-        } catch {Write-Host "( ) AMD VulkanSDK required for AMD GPU build"}
-    } finally {
-    if ($build -ne 'vulkan' -and $build -ne 'cuda'){$build = 'cpu'; Write-Host "(*) Build for CPU Only"}
-    if($build -eq 'cuda') {Write-Host "(*) Nvidia CudaToolkit"}
-    if ($build -eq 'vulkan') {Write-Host "(*) AMD VulkanSDK"}
-    # Add config.txt file to store variables.
-    New-Item -ItemType File -Path $path\config.txt
-    RestoreConfig # Fill in the config.txt file from this release.
-    $global:cfg = "build"; $global:cfgValue = $build; EditConfig $global:cfg # Update config with new build value.
-    if (Test-Path "$path\llama.cpp"){}else{InstallLlama}
-    }
+$build = 'cpu' # This is now configurable in the GUI.
+# Add config.txt file to store variables.
+New-Item -ItemType File -Path $path\config.txt
+RestoreConfig # Fill in the config.txt file from this release.
+$global:cfg = "build"; $global:cfgValue = $build; EditConfig $global:cfg # Update config with new build value.
+if (Test-Path "$path\llama.cpp"){}else{InstallLlama}
+
 }
 
 Export-ModuleMember -Function * -Variable * -Alias *
