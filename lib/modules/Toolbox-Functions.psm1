@@ -2,7 +2,7 @@
 # Contains the functions.
 
 # Toolbox-Functions version
-$global:version_func = "0.1.x"
+$global:version_func = "0.1.0"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck {
@@ -269,31 +269,42 @@ function InstallLlama {
 
 # Build Llama as needed.
 function BuildLlama {
-    $label3.Text = “The build flag clears after a rebuild is complete. Building..."
-    $global:cfg = "build"; $build = RetrieveConfig $global:cfg # get-set the flag for $build.
-    if($build -eq 'vulkan') {
- 		cd $path\llama.cpp
-		rd -r build
-		mkdir build
-		cmake -B .\build -DGGML_VULKAN=ON -DGGML_NATIVE=ON
-		cmake --build build --config Release -j $NumberOfCores
-	} elseif ($build -eq 'cuda') {
-		cd $path\llama.cpp
-		rd -r build
-		mkdir build
-		cmake -B .\build -DGGML_CUDA=ON -DGGML_NATIVE=ON
-		cmake --build build --config Release -j $NumberOfCores
-	} elseif ($build -eq 'cpu') {
-		cd $path\llama.cpp
-		rd -r build
-		mkdir build
-		cmake -B .\build -DGGML_NATIVE=ON
-		cmake --build build --config Release -j $NumberOfCores
-	}
+    if (Test-Path $path\logs\build){}else{mkdir $path\logs\build} #if the logs dir does not exist make it.
+    $label3.Text = "The build flag clears after a rebuild is complete. Building..."
+    $global:cfg = "build"
+    $build = RetrieveConfig $global:cfg # get-set the flag for $build.
+        
+    $buildFlag = switch ($build) {
+        'vulkan' { "-DGGML_VULKAN=ON" }
+        'cuda'   { "-DGGML_CUDA=ON" }
+        'cpu'    { "-DGGML_NATIVE=ON" }
+        default  { throw "Invalid build type: $build" }
+    }
 
-$global:cfgValue = "False"; $global:cfg = "rebuild"; EditConfig $global:cfg # get-set the flag for $rebuild.
-SetButton
-$label3.Text = "Build completed."
+    Set-Location $path\llama.cpp
+    Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path build | Out-Null
+
+    $cmakeArgs1 = "-B .\build $buildFlag -DGGML_NATIVE=ON"
+    $cmakeArgs2 = "--build build --config Release -j $NumberOfCores"
+
+    Write-Warning "Running CMake configure"
+    $process = Start-Process -FilePath "cmake" -ArgumentList $cmakeArgs1 -NoNewWindow -PassThru
+    Wait-Process -InputObject $process
+    Write-Host -ForegroundColor Green "CMake configure completed successfully. Proceeding to build step."
+    
+    Write-Warning "Running CMake build"
+    $TextBox2.Text = "The section `"Generating Code...`" will take a while without updating the screen."
+    $process = Start-Process -FilePath "cmake" -ArgumentList $cmakeArgs2 -NoNewWindow -PassThru
+    Wait-Process -InputObject $process
+    Write-Host -ForegroundColor Green "CMake build completed successfully."
+
+    $global:cfgValue = "False"
+    $global:cfg = "rebuild"
+    EditConfig $global:cfg # get-set the flag for $rebuild.
+    SetButton
+    $label3.Text = "Build completed successfully."
+    $TextBox2.Text = ""
 }
 
 # Determine the branch in use.

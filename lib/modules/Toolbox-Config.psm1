@@ -2,7 +2,7 @@
 # Contains the configuration functions.
 
 # Toolbox Config Text Version
-$global:version_cfg = "0.1.x"
+$global:version_cfg = "0.1.0"
 
 # The config text for this release.
 $script:cfgText = "Llama.Cpp-Toolbox¦$version
@@ -13,8 +13,8 @@ rebuild¦False
 build¦default
 repo¦ggerganov/llama.cpp.git
 branch¦master
-dev_branch¦
-release_branch¦
+dev_branch¦default
+release_branch¦default
 symlinkdir¦$path\Symlinks
 maxCtx¦4096
 show¦symlink
@@ -70,24 +70,28 @@ function UpgradeConfig {
 
     $output = @() # Create array to contain lines which will be written.
     $linesRead = @{} # Create array to contain all lines we looked at.
-    
+    $addedEntries = @{} # Create array to contain all lines we added.
+
     # Check each line of the original config file for missing lines from the new config text.
     foreach ($line1 in $lines1) {
         $foundMatch = $false
+        $key = $line1.Split('¦')[0].Trim()
         # Separate handling for any line that does not start with "show" or "hide", these are the settings.
-        if ($line1.Split('¦')[0].Trim() -notmatch "(show|hide)"){
+        if ($key -notmatch "(show|hide)"){
             foreach ($line2 in $lines2) {
-                # For each $line2 check any $line1 that does not start with "show" or "hide"
-                if ($line1.Split('¦')[0].Trim() -notmatch "(show|hide)"){
-                    # Compare the relevant entries of $lines2 for a matching item.
-                    if ($line2.Split('¦')[0].Trim().Contains($line1.Split('¦')[0].Trim())) {
+                $key2 = $line2.Split('¦')[0].Trim()
+                if ($key2 -eq $key) {
+                    if (!$addedEntries.ContainsKey($key)) {
                         $output += $line2 # If a match exists keep it, this may have been modified by the user.
-                        $foundMatch = $true # Mark that we found a match, then continue looking for more to add.
+                        $addedEntries[$key] = $true # Mark that we added a record.
                     }
+                    $foundMatch = $true # Mark that we found a match, then continue looking for more to add.
+                    break
                 }
             }
-            if (!$foundMatch) {
+            if (!$foundMatch -and !$addedEntries.ContainsKey($key)) {
                 $output += $line1 # If no match exists add the new configuration option.
+                $addedEntries[$key] = $true
             }
         }
         else{ # Separate handling for any line which starts with "show" or "hide", these are the menu items.

@@ -4,7 +4,7 @@
 # todo # Assist with update of Transformers
 
 # Llama.cpp-Toolbox GUI version
-$global:version_GUI = "0.1.x"
+$global:version_GUI = "0.1.0"
 
 Add-Type -AssemblyName System.Windows.Forms
 
@@ -122,7 +122,7 @@ function SetButton {
 
     $buttonClickAction = {
         if($global:rebuild -eq "True"){
-            $note = "Please be patient, this may take a while. $symlinkdir`n`nContinue?"
+            $note = "Please be patient, this may take a while. `n`nContinue?"
             $halt = Confirm # Inform the user this will take a while.
             if($halt -eq 0){BuildLlama}{}
         } else {
