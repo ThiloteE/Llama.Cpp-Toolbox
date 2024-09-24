@@ -291,12 +291,15 @@ function BuildLlama {
     Write-Warning "Running CMake configure"
     $process = Start-Process -FilePath "cmake" -ArgumentList $cmakeArgs1 -NoNewWindow -PassThru
     Wait-Process -InputObject $process
-    Write-Host -ForegroundColor Green "CMake configure completed successfully. Proceeding to build step."
+    if ($process.ExitCode -eq 0){
+        Write-Host -ForegroundColor Green "CMake configure completed successfully. Proceeding to build step."
     
-    Write-Warning "Running CMake build"
-    $TextBox2.Text = "The section `"Generating Code...`" will take a while without updating the screen."
-    $process = Start-Process -FilePath "cmake" -ArgumentList $cmakeArgs2 -NoNewWindow -PassThru
-    Wait-Process -InputObject $process
+        Write-Warning "Running CMake build"
+        $TextBox2.Text = "The section `"Generating Code...`" will take a while without updating the screen."
+        $process = Start-Process -FilePath "cmake" -ArgumentList $cmakeArgs2 -NoNewWindow -PassThru
+        Wait-Process -InputObject $process
+    }{Write-Warning "Configure-Error"}
+    if ($process.ExitCode -eq 0){
     Write-Host -ForegroundColor Green "CMake build completed successfully."
 
     $global:cfgValue = "False"
@@ -305,6 +308,7 @@ function BuildLlama {
     SetButton
     $label3.Text = "Build completed successfully."
     $TextBox2.Text = ""
+    }{Write-Warning "Build-Error"}
 }
 
 # Determine the branch in use.
