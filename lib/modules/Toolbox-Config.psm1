@@ -94,13 +94,16 @@ function UpgradeConfig {
                 $addedEntries[$key] = $true
             }
         }
-        else{ # Separate handling for any line which starts with "show" or "hide", these are the menu items.
+        else { # Separate handling for any line which starts with "show" or "hide", these are the menu items.
+            $showHideKey = $line1.Split('¦')[1].Trim().Split(' ')[0].Trim()
+            $foundMatch = $false
             foreach ($line2 in $lines2) {
                 # Look for new entries that also exist in the original config that have not been added already.
-                if ($line2.Split('¦')[1].Trim().Split(' ')[0].Trim().Contains($line1.Split('¦')[1].Trim().Split(' ')[0].Trim()) -and !$linesRead.ContainsKey($line2)) {
-                    $output += $line2 # If a match exists keep it, this may have been modified by the user.
+                if ($line2.Split('¦')[1].Trim().Split(' ')[0].Trim() -eq $showHideKey -and !$linesRead.ContainsKey($line2)) {
+                    $output += $line2 # If a match exists, keep it, as it may have been modified by the user.
                     $linesRead[$line2] = 1 # Mark the line that's added so we don't copy it.
                     $foundMatch = $true # Mark that we found a match, then continue looking for more to add.
+                    break
                 }
             }
             if (!$foundMatch -and !$linesRead.ContainsKey($line1)) {
@@ -109,6 +112,7 @@ function UpgradeConfig {
             }
         }
     }
+
     # Save the updated content back to the file without adding a newline at the end
     $output -join "`r`n" | Set-Content -Path "$path\config.txt" -NoNewline
 }
