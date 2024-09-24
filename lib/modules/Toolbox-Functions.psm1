@@ -282,8 +282,6 @@ function BuildLlama {
     }
 
     Set-Location $path\llama.cpp
-    Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
-    New-Item -ItemType Directory -Force -Path build | Out-Null
 
     $cmakeArgs1 = "-B .\build $buildFlag -DGGML_NATIVE=ON"
     $cmakeArgs2 = "--build build --config Release -j $NumberOfCores"
