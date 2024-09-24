@@ -595,7 +595,7 @@ function BranchManager {
     function GitBranches {
         Set-Location $RepoPath
         $branches = git branch --list
-        return $branches | Where-Object { $_ -notmatch '^\*?\s*(master|HEAD)$' } | ForEach-Object { $_.Trim() -replace '^\* ', '' }
+        return $branches | Where-Object { $_ -notmatch '(^\*|master|HEAD)' } | ForEach-Object { $_.Trim() -replace '^\* ', '' }
     }
 
     function BranchList {
