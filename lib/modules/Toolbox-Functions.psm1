@@ -217,7 +217,7 @@ function UpdateToolbox {
         $label3.Text = "Updating..."
         $log_name = "Toolbox" # Send this to Log-GitUpdate for the file name.
         $gitstatus = Invoke-Expression "git pull"
-        Update-Log
+        Update-Log $gitstatus $log_name
         Start-Process PowerShell -ArgumentList $path\LlamaCpp-Toolbox.ps1; [Environment]::Exit(1)
         }
     Else {$label3.Text = "No changes to Toolbox detected."}
@@ -239,7 +239,7 @@ function UpdateLlama {
     If ($gitstatus -match "pull") {# If updates exist get and build them.
         $label3.Text = "Updating..."
         $gitstatus = Invoke-Expression "git pull"
-        Update-Log
+        Update-Log $gitstatus $log_name
         $label3.Text = "Update completed, set a new branch to build."
         }
     Else {$label3.Text = "No changes to llama.cpp detected."}
@@ -303,12 +303,13 @@ function Get-GitBranch {
 }
 
 # Display and log the changes, after asigning a $log_name and using $gitstatus = Invoke-Expression "git pull".
-function Update-Log {
+function Update-Log ($gitstatus,$log_name){
     $gitstatusf = $gitstatus -replace '\|', [System.Environment]::NewLine # Format the text from git pull.
     $timestamp = Get-Date -Format "yyyyMMddHHmmss"
-    if (Test-Path $path\logs){}else{mkdir $path\logs} #if the logs dir does not exist make it.
-    $gitstatusf | Out-File -FilePath "$path\logs\$timestamp-$version-$log_name.txt" -Force
-    $TextBox2.Text = $gitstatusf
+    if (Test-Path $path\logs\updates){}else{mkdir $path\logs\updates} #if the logs dir does not exist make it.
+    if ($gitstatusf -ne ""){
+    $gitstatusf | Out-File -FilePath "$path\logs\updates\$timestamp-$version-$log_name.txt" -Force
+    $TextBox2.Text = $gitstatusf}
     }
 
 # Change the branch to use, $branch is set when changed in ConfigForm.

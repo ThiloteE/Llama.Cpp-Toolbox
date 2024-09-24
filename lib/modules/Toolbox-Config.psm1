@@ -9,7 +9,7 @@ $script:cfgText = "Llama.Cpp-Toolbox¦$version
 Config-Version¦$global:version_cfg
 config.txt¦This file stores variables to be used for updates & customization. If this file is modified incorrectly, regret happens.
 help¦Separate arguments with a space like this...llama-quantize.exe Q4_0 --leave-output-tensor
-rebuild¦0
+rebuild¦False
 build¦default
 repo¦ggerganov/llama.cpp.git
 branch¦master

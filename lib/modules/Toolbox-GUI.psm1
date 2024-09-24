@@ -143,7 +143,7 @@ function SetButton {
                     $Label3.Text =  'Fetching changes...'
                     $gitstatus = Invoke-Expression "git pull"
                     $log_name = "$selectedDirectory"
-                    Update-Log
+                    Update-Log $gitstatus $log_name
                     $Label3.Text =  'Model updated!'
                 }
             }
@@ -637,7 +637,9 @@ function BranchManager {
                 Set-Location $RepoPath
                 $currentBranch = git rev-parse --abbrev-ref HEAD
                 git checkout $branchToUpdate
-                git pull
+                $log_name = $branchToUpdate -replace "[-/]","_"
+                $gitstatus = Invoke-Expression "git pull"
+                Update-Log $gitstatus $log_name
                 git checkout $currentBranch
                 [System.Windows.Forms.MessageBox]::Show("Branch '$branchToUpdate' updated successfully!", "Update Complete")
             })
