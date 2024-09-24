@@ -307,44 +307,17 @@ function ConfigForm {
     $toolStrip.AutoSize = $true
     $form.Controls.Add($toolStrip)
 
-    # Create a ToolStripButton for Save
-    $saveButton = New-Object System.Windows.Forms.ToolStripButton
-    $saveButton.Text = "Save"
-    $saveButton.Add_Click({
-        foreach ($index in $script:textBoxes.Keys + $script:comboBoxes.Keys) {
-            $parts = $lines[$index].Split('¦')
-            if ($script:toggleButtons.ContainsKey($index)) {
-                $parts[0] = if ($script:toggleButtons[$index].Text -eq "show") { "hide" } else { "show" }
-            }
-            if ($script:textBoxes.ContainsKey($index)) {
-                $parts[1] = $script:textBoxes[$index].Text.Trim()
-            } elseif ($script:comboBoxes.ContainsKey($index)) {
-                $parts[1] = $script:comboBoxes[$index].Text.ToString().Trim()
-            }
-            $lines[$index] = $parts -join '¦'
-        }
-    
-        # Save the updated content back to the file without adding a newline at the end
-        $lines -join "`r`n" | Set-Content -Path "$path\config.txt" -NoNewline
-
-        [System.Windows.Forms.MessageBox]::Show("Configuration saved successfully.", "Save Complete")
-    
-        # Refresh the form.
-        ListScripts
-        CreateFormControls
-        RefreshBranchComboBox
-    })
-
     # Create a ToolStripButton for BranchManager
     $bmButton = New-Object System.Windows.Forms.ToolStripButton
     $bmButton.Text = "Branch Manager"
     $bmButton.Add_Click({BranchManager})
 
     # Add buttons to the ToolStrip
-    $toolStrip.Items.Add($saveButton)
     $toolStrip.Items.Add($bmButton)
-
+    
+    
     $global:textBoxes = @{}
+    $global:formLabels = @{}
     $global:comboBoxes = @{}
     $global:toggleButtons = @{}
     $global:commitButtons = @{}
@@ -353,6 +326,7 @@ function ConfigForm {
     function CreateFormControls {
         $panel.Controls.Clear()
         $global:textBoxes.Clear()
+        $global:formLabels.Clear()
         $global:comboBoxes.Clear()
         $global:toggleButtons.Clear()
         $global:commitButtons.Clear()
@@ -372,6 +346,7 @@ function ConfigForm {
                 $label.Text = $labelText
                 $label.AutoSize = $true
                 $label.Location = New-Object System.Drawing.Point(10, $yPosition)
+                $global:formLabels[$index] = $label
                 $panel.Controls.Add($label)
 
                 if ($global:labelText -match "show|hide") {
@@ -410,17 +385,26 @@ function ConfigForm {
     $form.ShowDialog()
 }
 
-function ToggleButton($index, $yPos, $labelText) {
-    $global:ButtonT = New-Object System.Windows.Forms.Button
-    $global:buttonIndices[$ButtonT] = $index
-    $ButtonT.Location = New-Object System.Drawing.Point(430, $yPos)
-    $ButtonT.Size = New-Object System.Drawing.Size(80,23)
-    $ButtonT.Text = if ($labelText -match "show") { "hide" } else { "show" }
-    $panel.Controls.Add($ButtonT)
+function ToggleButton($index, $yPosition, $labelText) {
+    $global:button = New-Object System.Windows.Forms.Button
+    $global:buttonIndices[$button] = $index
+    $button.Location = New-Object System.Drawing.Point(430, $yPosition)
+    $button.Size = New-Object System.Drawing.Size(80,23)
+    $button.Text = if ($labelText -match "show") { "hide" } else { "show" }
+    $panel.Controls.Add($button)
     
-    $global:toggleButtons[$index] = $ButtonT
-    $ButtonT.Add_Click({
+    $global:toggleButtons[$index] = $button
+    $button.Add_Click({
+        $thatText = $this.Text
         $this.Text = if ($this.Text -eq "show") { "hide" } else { "show" }
+        $clickedButtonIndex = $global:buttonIndices[$this]
+        $labelText = $lines[$clickedButtonIndex]
+        $formLabels[$clickedButtonIndex].Text = $thatText
+        $global:labelText = $labelText.Split('¦')[0].Trim()
+        $value = $global:textBoxes[$clickedButtonIndex].Text
+        # Commit action logic
+        $action = DetermineAction $clickedButtonIndex $value
+        PerformAction $action $value
     })
 }
 
@@ -459,13 +443,26 @@ function CleanRepo ($text) {
     }
 }
 
+function ReplaceLine($lineText, $ReplacementTxt){
+$fileContent = Get-Content $path\config.txt -Raw
+
+# Replace the old text with the new text
+$newContent = $fileContent -replace $lineText, $ReplacementTxt
+
+# Write the modified content back to the file
+Set-Content $path\config.txt -Value $newContent -Force
+}
+
 function DetermineAction($index, $value) {
     $lineText = $lines[$index]
     #write-host "Determine $lineText $value"
     $global:cfgValue =  $value.Trim()
     $global:cfg = $lineText.Split('¦')[0].Trim()
+    $ReplacementTxt = $value.Trim()
     if($value.Trim() -eq "cpu"){$BuildTest = $true}else{$BuildTest = $false}
     switch -Regex ($lineText) {
+        "show" {ReplaceLine $lineText "hide¦$ReplacementTxt" ; return "Saved"}
+        "hide" {ReplaceLine $lineText "show¦$ReplacementTxt" ; return "Saved"}
         "repo" {
             $global:cfgValue = CleanRepo $global:cfgValue
             if($global:cfgValue -eq ""){ $ErrorMessage = [System.Windows.Forms.MessageBox]::Show("Input a git repo like this one 'ggerganov/llama.cpp.git'") ; return "Error"}
@@ -493,6 +490,7 @@ function DetermineAction($index, $value) {
 function PerformAction($action, $value) {
     #write-host "Perform $action $value"
     switch ($action) {
+        "Saved" { ListScripts }
         "Error" { 
             $ErrorMessage
         }
