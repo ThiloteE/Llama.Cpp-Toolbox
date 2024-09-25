@@ -587,7 +587,7 @@ function BranchManager {
     $RepoPath = "$path\llama.cpp"
 
     $BMform = New-Object System.Windows.Forms.Form
-    $BMform.Text = "Branch Manager"
+    $BMform.Text = "Dev_Branch Manager"
     $BMform.Size = New-Object System.Drawing.Size(535,200)
     $BMform.StartPosition = "CenterScreen"
 
@@ -602,11 +602,13 @@ function BranchManager {
         $branches = git branch --list
         return $branches | Where-Object { $_ -notmatch '(^\*|master|HEAD)' } | ForEach-Object { $_.Trim() -replace '^\* ', '' }
     }
-
-    function BranchList {
+    
+    function BranchPanel {
         $BMpanel.Controls.Clear()
         $branches = GitBranches
-
+        if($branches -eq $null){
+            [System.Windows.Forms.MessageBox]::Show("This form will contain local copies of any dev_branch you have used.`nThey are safe to delete if you are not actively developing them.`n`n")
+        }
         foreach ($branch in $branches) {
             $rowPanel = New-Object System.Windows.Forms.FlowLayoutPanel
             $rowPanel.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
@@ -629,7 +631,7 @@ function BranchManager {
                 if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
                     Set-Location $RepoPath
                     git branch -D $branchToDelete
-                    BranchList
+                    BranchPanel
                 }
             })
 
@@ -655,12 +657,13 @@ function BranchManager {
 
             $BMpanel.Controls.Add($rowPanel)
         }
+        
     }
-
     $BMform.Controls.Add($BMpanel)
 
-    BranchList
+    BranchPanel
     $BMform.ShowDialog()
+    
 }
 
 Export-ModuleMember -Function * -Variable * -Alias *

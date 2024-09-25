@@ -64,7 +64,7 @@ function Main {
         ListScripts # Rebuild the list each init.
         ListModels # Rebuild the list each init.
         if ($firstRun -ne $null){
-            [System.Windows.Forms.MessageBox]::Show("This is your first run!`n`nI'm opening the config form now. You should choose the device you wish to 'build' for and click 'Commit'.`n`nYou should 'hide' any options you don't want to use.`n`nTake care when editing this form.")
+            [System.Windows.Forms.MessageBox]::Show("This is your first run!`n`nI've already selected the most recent release for you.`n`nI'm opening the config form now. You should choose the device you wish to 'build' for and click 'Commit'.`n`nYou should 'hide' any options you don't want to use.`n`nThen close the config form to procede.")
             ConfigForm
         }
         $main_form.ShowDialog() # Start the GUI.
