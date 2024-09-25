@@ -18,13 +18,18 @@ $global:models = "$path\llama.cpp\models"
 $global:NumberOfCores = [Environment]::ProcessorCount / 2 # Faster but maybe not best method, instant result.
 
 # Importing modules, debug with -Verbose
+if ( Test-Path $path\lib\modules\Toolbox-Config.psm1 ){
+$isInstalled = "True"
 Import-Module $path\lib\modules\Toolbox-Config.psm1 
 Import-Module $path\lib\modules\Llama-Chat.psm1
 Import-Module $path\lib\modules\Toolbox-Functions.psm1
 Import-Module $path\lib\modules\Toolbox-GUI.psm1
+}
 
 # Check for prerequisites and install as needed on first run or when CFG is not detected.
 function PreReqs {
+    if($isInstalled -eq "True"){CfgBuild}
+    else{
     if (python --version){$python = 1; Write-Host "(*) python is on path"}else{$python = 0; Write-Host "( ) python isn't ready"}
     if (pyenv){$pyenv = 1; Write-Host "(*) pyenv is ready"}else{$pyenv = 0; Write-Host "( ) pyenv isn't ready"}
     if (git help -g){$git = 1; Write-Host "(*) git is ready"}else{$git = 0; Write-Host "( ) git isn't ready"}
@@ -36,7 +41,7 @@ function PreReqs {
     pyenv install 3.11
     pyenv rehash}
     if(-not $git){Read-Host "Installing git, any key to continue"; winget install --id Git.Git -e --source winget;InstallToolbox}
-    CfgBuild
+    }
 }
 
 # Install the environment using git if it was not already done then run it.
