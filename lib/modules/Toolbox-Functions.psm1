@@ -229,9 +229,6 @@ function UpdateLlama {
     $global:cfgValue = "False"; $global:cfg = "rebuild"; EditConfig $global:cfg # get-set the flag for $rebuild.
     cd $path\llama.cpp
     git checkout master
-    $branch = Get-GitBranch
-    $global:cfg = "branch"
-    Set-GitBranch $branch.Trim()
     $fetch = Invoke-Expression "git fetch" # Check for any updates using Git.
     $gitstatus = Invoke-Expression "git status"
     $TextBox2.Text = $gitstatus
@@ -243,7 +240,8 @@ function UpdateLlama {
         $label3.Text = "Update completed, set a new branch to build."
         }
     Else {$label3.Text = "No changes to llama.cpp detected."}
-    SetButton
+    $global:cfg = "branch" ; $branch = RetrieveConfig $global:cfg # get-set the flag for $branch.
+    git checkout $branch # Return to expected branch.
 }
 
 # Install Llama.Cpp for the toolbox on first run.
