@@ -600,40 +600,18 @@ function BranchManager {
     function GitBranches {
         Set-Location $RepoPath
         $branches = git branch --list
-        return $branches | Where-Object { $_ -notmatch '(^\*|master|HEAD)' } | ForEach-Object { $_.Trim() -replace '^\* ', '' }
+        return $branches | Where-Object { $_ -notmatch '(HEAD)' } | ForEach-Object { $_.Trim() }
     }
     
     function BranchPanel {
         $BMpanel.Controls.Clear()
         $branches = GitBranches
-        if($branches -eq $null){
-            [System.Windows.Forms.MessageBox]::Show("This form will contain local copies of any dev_branch you have used.`nThey are safe to delete if you are not actively developing them.`n`n")
-        }
         foreach ($branch in $branches) {
             $rowPanel = New-Object System.Windows.Forms.FlowLayoutPanel
             $rowPanel.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
             $rowPanel.Width = 519
             $rowPanel.Height = 30
             $rowPanel.Margin = New-Object System.Windows.Forms.Padding(0, 0, 0, 5)
-
-            $BMlabel = New-Object System.Windows.Forms.Label
-            $BMlabel.Text = $branch
-            $BMlabel.Width = 300
-            $BMlabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
-
-            $deleteButton = New-Object System.Windows.Forms.Button
-            $deleteButton.Text = "Delete"
-            $deleteButton.Width = 100
-            $deleteButton.Add_Click({
-                param($sender, $e)
-                $branchToDelete = $sender.Parent.Controls[1].Text
-                $result = [System.Windows.Forms.MessageBox]::Show("Are you sure you want to delete branch '$branchToDelete'?", "Confirm Delete", [System.Windows.Forms.MessageBoxButtons]::YesNo)
-                if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
-                    Set-Location $RepoPath
-                    git branch -D $branchToDelete
-                    BranchPanel
-                }
-            })
 
             $updateButton = New-Object System.Windows.Forms.Button
             $updateButton.Text = "Update"
@@ -650,14 +628,33 @@ function BranchManager {
                 git checkout $currentBranch
                 [System.Windows.Forms.MessageBox]::Show("Branch '$branchToUpdate' updated successfully!", "Update Complete")
             })
-
-            $rowPanel.Controls.Add($deleteButton)
-            $rowPanel.Controls.Add($BMlabel)
             $rowPanel.Controls.Add($updateButton)
+
+            $BMlabel = New-Object System.Windows.Forms.Label
+            $BMlabel.Text = $branch
+            $BMlabel.Width = 300
+            $BMlabel.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+            $rowPanel.Controls.Add($BMlabel)
+
+            if ($branch -notmatch '^\*' -and $branch -ne 'master') {
+                $deleteButton = New-Object System.Windows.Forms.Button
+                $deleteButton.Text = "Delete"
+                $deleteButton.Width = 100
+                $deleteButton.Add_Click({
+                    param($sender, $e)
+                    $branchToDelete = $sender.Parent.Controls[1].Text
+                    $result = [System.Windows.Forms.MessageBox]::Show("Are you sure you want to delete branch '$branchToDelete'?", "Confirm Delete", [System.Windows.Forms.MessageBoxButtons]::YesNo)
+                    if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+                        Set-Location $RepoPath
+                        git branch -D $branchToDelete
+                        BranchPanel
+                    }
+                })
+                $rowPanel.Controls.Add($deleteButton)
+            }
 
             $BMpanel.Controls.Add($rowPanel)
         }
-        
     }
     $BMform.Controls.Add($BMpanel)
 
