@@ -627,6 +627,7 @@ function BranchManager {
                 Update-Log $gitstatus $log_name
                 git checkout $currentBranch
                 [System.Windows.Forms.MessageBox]::Show("Branch '$branchToUpdate' updated successfully!", "Update Complete")
+                RefreshBranchComboBox
             })
             $rowPanel.Controls.Add($updateButton)
 
