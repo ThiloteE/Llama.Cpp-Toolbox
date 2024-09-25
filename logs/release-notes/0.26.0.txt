@@ -1,0 +1,28 @@
+Version 0.26.0
+The toolbox is now split into several modules which should be easier to maintain as more features are added.
+Added features in this merge.
+- Config Form
+  - All options in the config are maintained through this form.
+  - Show and Hide buttons, allow users to hide options they will not use.
+  - Commit buttons each have actions as needed per config option.
+    - The 'build' device selection will require a rebuild.
+      - If you do not have the pre-requisite SDK the option will notify you.
+    - The dev or release 'branch' selection will require a rebuild.
+- Branch Manager
+  - Allow update or removal of development branches selected in the config form.
+- First Run
+  - Messages to assist new users.
+  - Guidance through assisted setup.
+- UpgradeConfig
+  - This function will add new features as they are released.
+- Build/Rebuild
+  - The function has been placed into a button to be used as needed when required.
+- LlamaChat
+  - The ability to use llama-srv to launch the openAi-API with a selected gguf loaded.
+  - The NGL is set in a loop that will retry to load using the highest layer count possible. (TODO: Make this better.)
+- Logs
+  - Update will create a log for whatever is updated.
+  - Build/Rebuild (TODO: Make this happen.)
+  - The release-notes are included on each upgrade.
+- Update Buttons
+  - The update buttons will not require you to rebuild until you are ready.
