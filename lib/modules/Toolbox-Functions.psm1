@@ -9,6 +9,7 @@ function VersionCheck {
     $global:cfg = "rebuild"; $global:rebuild = RetrieveConfig $global:cfg # get-set the flag for $rebuild.
     $global:cfg = "Llama.Cpp-Toolbox"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for old Toolbox version.
     if ($version -ne $global:cfgVersion){
+    $TextBox2.Text = Get-Content "$path\logs\release-notes\$version.txt" -Delimiter `n
     $global:cfgValue = $version ; EditConfig $global:cfg # Update config with new value.
     # Get the version of the config text, if it matches the file we can skip this update.
     $global:cfg = "Config-Version"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for version.
