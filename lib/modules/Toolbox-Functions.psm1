@@ -263,7 +263,7 @@ function InstallLlama {
     Set-Location -Path $path\llama.cpp
     $branch = Get-NewRelease # Get the latest release version.
     Set-GitBranch $branch # Set the cfg to this branch then build it.
-    BuildLlama
+    $global:firstRun = "True"
     Main # Everything is ready to start the GUI.
 }
 

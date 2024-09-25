@@ -4,7 +4,7 @@
 
 # Llama.cpp-Toolbox version
 $global:version = "0.26.0"
-
+$global:firstRun = "True"
 # The directory where LlamaCpp-Toolbox.ps1 is initialized.
 $global:path = $PSScriptRoot 
 
@@ -58,6 +58,10 @@ function Main {
         GitIgnore # Rebuild the list each init, if something is tracked it will not be ignored.
         ListScripts # Rebuild the list each init.
         ListModels # Rebuild the list each init.
+        if ($firstRun -ne $null){
+            [System.Windows.Forms.MessageBox]::Show("This is your first run!`n`nI'm opening the config form now. You should choose the device you wish to 'build' for and click 'Commit'.`n`nYou should 'hide' any options you don't want to use.`n`nTake care when editing this form.")
+            ConfigForm
+        }
         $main_form.ShowDialog() # Start the GUI.
     }
     else {
