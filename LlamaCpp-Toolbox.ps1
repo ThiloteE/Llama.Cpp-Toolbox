@@ -4,7 +4,7 @@
 
 # Llama.cpp-Toolbox version
 $global:version = "0.26.0"
-$global:firstRun = "True"
+
 # The directory where LlamaCpp-Toolbox.ps1 is initialized.
 $global:path = $PSScriptRoot 
 
