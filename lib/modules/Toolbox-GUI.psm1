@@ -121,7 +121,12 @@ function SetButton {
     $global:rebuild = RetrieveConfig $global:cfg # get-set the flag for $rebuild.
 
     $buttonClickAction = {
-        if($global:rebuild -eq "True"){
+        if($global:rebuild -eq "True" -and $global:firstRun -eq "True" ){
+            $note = "Please be patient, this may take a while. `n`nPlease continue."
+            $halt = Confirm # Inform the user this will take a while.
+            if($halt -eq 0){BuildLlama}{}
+        }
+        elseif($global:rebuild -eq "True"){
             $note = "Please be patient, this may take a while. `n`nContinue?"
             $halt = Confirm # Inform the user this will take a while.
             if($halt -eq 0){BuildLlama}{}
@@ -160,10 +165,10 @@ function SetButton {
     $Button.Name = "BUL_Button" # Give the button a unique name
     $Button.Location = New-Object System.Drawing.Size(5,29)
     $Button.Size = New-Object System.Drawing.Size(100,23)
-    $Button.Text = if($global:rebuild -eq "True"){"Rebuild"}else{"Update"}
+    $Button.Text = if($global:rebuild -eq "True" -and $global:firstRun -eq "True" ){"Build"}elseif($global:rebuild -eq "True"){"Rebuild"}else{"Update"}
     $main_form.Controls.Add($Button)
 
-    if($global:rebuild -eq "True"){$label3.Text = "Remember to rebuild to use your updates."}
+    if($global:rebuild -eq "True" -and $global:firstRun -eq "True" ){$label3.Text = "You must click 'build' before llama.cpp can be used."}elseif($global:rebuild -eq "True"){$label3.Text = "Remember to rebuild to use your updates."}
     # Add click event to the new button
     $Button.Add_Click($buttonClickAction)
     
