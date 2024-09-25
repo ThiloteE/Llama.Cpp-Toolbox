@@ -618,9 +618,9 @@ function BranchManager {
             $updateButton.Width = 100
             $updateButton.Add_Click({
                 param($sender, $e)
-                $branchToUpdate = $sender.Parent.Controls[1].Text
+                $branchToUpdate = $sender.Parent.Controls[1].Text -replace '^\* ', ''
                 Set-Location $RepoPath
-                $currentBranch = git rev-parse --abbrev-ref HEAD
+                $global:cfg = "branch" ; $currentBranch = RetrieveConfig $global:cfg # get-set the flag for $branch.
                 git checkout $branchToUpdate
                 $log_name = $branchToUpdate -replace "[-/]","_"
                 $gitstatus = Invoke-Expression "git pull"
