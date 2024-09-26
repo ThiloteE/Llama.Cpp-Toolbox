@@ -77,7 +77,7 @@ function ConvertModel {
     if ($global:ComboBox2.selectedItem -match "bpe"){$option = "--vocab-type bpe"}
     else{$option=''} # did they burn --outtype? It's still an option but stopped working.
     $convertScript = ($global:ComboBox2.selectedItem -split ' ', 2)[0].Trim() # Selected script for conversion.
-    if (Test-Path $path\Converted\$selectedModel-f16.gguf){$note = "Existing file will be overwritten.";$halt = Confirm} # If the file exists then ask to overwrite.
+    if (Test-Path $path\Converted\$selectedModel-f16.gguf){$halt = Confirm "Existing file will be overwritten."} # If the file exists then ask to overwrite.
     if (!$halt){
         if($halt -eq 0){Remove-Item $path\Converted\$selectedModel-f16.gguf}
         # Navigate to the directory containing conversion scripts.
@@ -369,9 +369,9 @@ function SymlinkModel {
     $selectedModel = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
     if ($selectedModel -match ".gguf"){
         $global:cfg = "symlinkdir"; $symlinkdir = RetrieveConfig $global:cfg # get-set the flag for $symlinkdir.
-        $note = "Admin permission required to create symlink in... $symlinkdir`n`nContinue?" ; $halt = Confirm # If the file exists then ask to overwrite.
+        $halt = Confirm "Admin permission required to create symlink in... $symlinkdir`n`nContinue?" # If the file exists then ask to overwrite.
         if($halt -eq 0){
-            if(test-path $symlinkdir){}else{$note = "Create symlink directory in... $symlinkdir`n`nContinue?" ; $halt = Confirm ; if($halt -eq 0){mkdir $symlinkdir}}
+            if(test-path $symlinkdir){}else{$halt = Confirm "Create symlink directory in... $symlinkdir`n`nContinue?" ; if($halt -eq 0){mkdir $symlinkdir}}
             $command = "New-Item -Path $symlinkdir -Name $selectedModel -Value $path\Converted\$selectedModel -ItemType SymbolicLink"
             Start-Process -FilePath powershell.exe -ArgumentList "-ExecutionPolicy Bypass -Command $command" -Verb RunAs # Requests admin permission.
         }

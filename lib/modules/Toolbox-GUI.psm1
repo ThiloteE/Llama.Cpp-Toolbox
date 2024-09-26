@@ -27,15 +27,13 @@ $configItem.Add_Click({ConfigForm})
 $updaterLlama  = New-Object System.Windows.Forms.ToolStripMenuItem
 $updaterLlama.Text = "Update Llama.cpp"
 $updaterLlama.ShortcutKeyDisplayString="Ctrl+l"
-$updaterLlama.Add_Click({$note = "Updating Llama.cpp`n`nYou must set a branch in the Toolbox-Config to rebuild.`n`n Are you sure you want to proceed?"
-    ;$update = "UpdateLlama";ConfirmUpdate}) # Updates llama.cpp only.
+$updaterLlama.Add_Click({ConfirmUpdate "UpdateLlama" "Updating Llama.cpp`n`nYou must set a branch in the Toolbox-Config to rebuild.`n`n Are you sure you want to proceed?" }) # Updates llama.cpp only.
 
 
 $updaterGui = New-Object System.Windows.Forms.ToolStripMenuItem
 $updaterGui.Text = "Update Toolbox"
 $updaterGui.ShortcutKeyDisplayString="Ctrl+g"
-$updaterGui.Add_Click({$note = "Updating the Llama.cpp-Toolbox GUI.`n`nThe program will restart after updating.`n`n Are you sure you want to proceed?"
-    ;$update = "UpdateToolbox";ConfirmUpdate}) # Updates the Toolbox only.
+$updaterGui.Add_Click({ConfirmUpdate "UpdateToolbox" "Updating the Llama.cpp-Toolbox GUI.`n`nThe program will restart after updating.`n`n Are you sure you want to proceed?"}) # Updates the Toolbox only.
 
 $menuStrip1.Items.Add($fileMenu)
 $menuStrip1.Items.Add($configItem)
@@ -122,13 +120,11 @@ function SetButton {
 
     $buttonClickAction = {
         if($global:rebuild -eq "True" -and $global:firstRun -eq "True" ){
-            $note = "Please be patient, this may take a while. `n`nPlease continue."
-            $halt = Confirm # Inform the user this will take a while.
+            $halt = Confirm "Please be patient, this may take a while. `n`nContinue?" # Inform the user this will take a while.
             if($halt -eq 0){BuildLlama}{}
         }
         elseif($global:rebuild -eq "True"){
-            $note = "Please be patient, this may take a while. `n`nContinue?"
-            $halt = Confirm # Inform the user this will take a while.
+            $halt = Confirm "Please be patient, this may take a while. `n`nContinue?" # Inform the user this will take a while.
             if($halt -eq 0){BuildLlama}{}
         } else {
             # Function to 'update' from list of LLMs.
@@ -224,9 +220,8 @@ $Button2.Add_Click({
 )
 
 # Request confirmation from the user.
-function Confirm {
+function Confirm ($message) {
     $halt = 1 # Never procede without permission.
-    $message = $note
     $title = "Confirm"
     $buttons = [System.Windows.Forms.MessageBoxButtons]::YesNo
     $icon = [System.Windows.Forms.MessageBoxIcon]::Question
@@ -236,8 +231,7 @@ function Confirm {
 }
 
 # Update on request with confirmation.
-function ConfirmUpdate {
-    $message = $note
+function ConfirmUpdate ($update, $message) {
     $title = "Confirm Update"
     $buttons = [System.Windows.Forms.MessageBoxButtons]::YesNo
     $icon = [System.Windows.Forms.MessageBoxIcon]::Question
