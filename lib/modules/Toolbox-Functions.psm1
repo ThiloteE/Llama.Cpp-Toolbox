@@ -154,7 +154,6 @@ function ModelList {
     $option = "name"
     foreach ($file in $fileList) {
         $selectedModel = $file.Name
-        # $model = ggufDump # I hate this slow and trash filled crap.
         $model = $file.Name -replace ("(-f\d+)|(-bf\d+)|(-iQ\d_.*)|(\.iQ\d_.*)|(-Q\d_.*)|(\.Q\d_.*)|(-gguf.*)|(\.gguf.*)","")
         if($list -notmatch $model){$list = $list +"$($model);`n"}
         }
@@ -162,7 +161,7 @@ function ModelList {
 }
 
 # Pull metadata from any gguf using the gguf_dump script.
-function ggufDump {
+function ggufDump ($selectedModel, $option, $print) {
     # gguf_dump needs a $option and a $selectedModel to fucntion, send that when calling ggufDump.
     # use ($print = 1) if you want it to update the gui with data.
     if ($selectedModel -match ".gguf"){

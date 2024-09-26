@@ -83,19 +83,21 @@ $Button1.Add_Click({
     $label3.Text = "";$TextBox2.Text = "" # Clear the text.
     $selectedDirectory = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
     $selectedScript = $global:ComboBox2.selectedItem # Selected script from dropdown list.
-        If ($selectedScript -match "model list") {ModelList} # Only requires Combobox2
+    If ($selectedScript -match "model list") {ModelList} # Only requires Combobox2
+    else{
         If ($selectedDirectory -eq $null) {$Label3.Text = "Select an LLM and script to process."}
-        Else {If ($selectedScript -eq $null) {$Label3.Text = "Select a script to process the LLM."}
+        else {
+            If ($selectedScript -eq $null) {$Label3.Text = "Select a script to process the LLM."}
             ElseIf ($selectedScript -match "quantize") {QuantizeModel}
             ElseIf ($selectedScript -match "convert") {ConvertModel}
-            ElseIf (($selectedScript -match "server") -or ($selectedScript -match "cli")) {LlamaChat}
-            ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $global:ComboBox_llm.selectedItem;$option = ($global:ComboBox2.selectedItem -split ' ', 2)[1].Trim();$print=1;ggufDump}
+            ElseIf (($selectedScript -match "server") -or ($selectedScript -match "cli")) {LlamaChat $selectedDirectory $selectedScript}
+            ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $global:ComboBox_llm.selectedItem;$option = ($global:ComboBox2.selectedItem -split ' ', 2)[1].Trim();$print=1;ggufDump $selectedModel $option $print}
             ElseIf ($selectedScript -match "symlink") {SymlinkModel}
             else {$Label3.Text = "The script entered:$selectedScript was not handled."}
             }
     $print = 0 # Reset the flag so the screen wont show uncalled results from ggufDump.
     }
-)
+})
 
 # Label for Status
 $Label2 = New-Object System.Windows.Forms.Label

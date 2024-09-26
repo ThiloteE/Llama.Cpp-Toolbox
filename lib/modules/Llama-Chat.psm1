@@ -15,22 +15,24 @@
 # Llama-Chat version
 $global:Llama_Chat_Ver = 0.1.0
 
-function LlamaChat {
+function LlamaChat ($selectedModel, $selectedScript) {
     # Extract parts from the selected item in the combobox.
-    $executable = ($global:ComboBox2.selectedItem).Split(' ')[0] # The executable to run.
+    $executable = $selectedScript.Split(' ')[0] # The executable to run.
+    $selectedModel # Selected LLM from dropdown list.
     $nthreads = [Environment]::ProcessorCount #$NumberOfCores
-    if ($executable -match "llama-server"){$port = ($global:ComboBox2.selectedItem).Split(' ')[1];$args = "--port $port "} # The port which will be used to run the web client.
+    if ($executable -match "llama-server"){$port = $selectedScript.Split(' ')[1];$args = "--port $port "} # The port which will be used to run the web client.
     else{$args = ""} # Empty list to be filled with all the args the user wants to apply.
             
     # Preparing the arguments from Config.txt, skip the exe and the port add the rest
-    foreach ($arg in (($global:ComboBox2.selectedItem).Split(' '))){
+    foreach ($arg in ($selectedScript.Split(' '))){
         if (($arg -ne $executable)-and($arg -ne $port)) {
             $args += "$arg "
         }
     }
-    $global:selectedModel = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
+    $option = "metadata" # Request all metadata.
+    $print = 0 # Do not print.
+    $value = ggufDump $selectedModel $option $print # Set the option needed to retrieve all metadata then retrieve the following values.
     $global:cfg = "maxCtx"; $cfgCTX = RetrieveConfig $global:cfg # get-set the flag for $cfgCTX then retrieve it's value.
-    $global:option = "metadata"; $value = ggufDump $value # Set the option needed to retrieve all metadata then retrieve the following values.
     # Retrieve context length
     if($value -match "context"){$matchingKey = ($value | Get-Member -Name *"context_length").Name | Where-Object { $_ -like "*context_length*" } | Select-Object -First 1
         if ($value | Get-Member -Name $matchingKey){
