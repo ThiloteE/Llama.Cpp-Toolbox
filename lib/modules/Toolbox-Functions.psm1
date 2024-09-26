@@ -23,21 +23,21 @@ function VersionCheck {
 # Get list of models
 function ListModels {
     $subdirectories = Get-ChildItem -Path $models -Directory
-    if($ComboBox_llm.Items -ne $null){$ComboBox_llm.Items.Clear()}
+    if($global:ComboBox_llm.Items -ne $null){$global:ComboBox_llm.Items.Clear()}
     foreach ($dir in $subdirectories) {
-        $ComboBox_llm.Items.Add($dir.Name)
+        $global:ComboBox_llm.Items.Add($dir.Name)
     }
     $files = Get-ChildItem -Path "$path\Converted\" -File
     foreach ($file in $files) {
-        $ComboBox_llm.Items.Add($file.Name)
+        $global:ComboBox_llm.Items.Add($file.Name)
     }
 }
 
 # Get list of scripts from config.
 function ListScripts {
-    $ComboBox2.Items.Clear()
+    $global:ComboBox2.Items.Clear()
     Get-Content -Path "$path\config.txt" | Where-Object {$_.TrimStart().StartsWith("show¦")} | ForEach-Object {
-        $ComboBox2.Items.Add($_.Split('¦')[1].Trim())
+        $global:ComboBox2.Items.Add($_.Split('¦')[1].Trim())
     }
 }
 
@@ -73,10 +73,10 @@ function ConvertModel {
 	# Activate the virtual environment.
 	.\venv\Scripts\activate
 	# Select the model to convert.
-    $selectedModel = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
-    if ($ComboBox2.selectedItem -match "bpe"){$option = "--vocab-type bpe"}
+    $selectedModel = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
+    if ($global:ComboBox2.selectedItem -match "bpe"){$option = "--vocab-type bpe"}
     else{$option=''} # did they burn --outtype? It's still an option but stopped working.
-    $convertScript = ($ComboBox2.selectedItem -split ' ', 2)[0].Trim() # Selected script for conversion.
+    $convertScript = ($global:ComboBox2.selectedItem -split ' ', 2)[0].Trim() # Selected script for conversion.
     if (Test-Path $path\Converted\$selectedModel-f16.gguf){$note = "Existing file will be overwritten.";$halt = Confirm} # If the file exists then ask to overwrite.
     if (!$halt){
         if($halt -eq 0){Remove-Item $path\Converted\$selectedModel-f16.gguf}
@@ -106,21 +106,21 @@ function QuantizeModel {
     # Navigate to the build directory where llama-quantize.exe resides
     Set-Location -Path $path\llama.cpp\build\bin\Release
 
-    # Get selected model from dropdown list 1 ($ComboBox_llm)
-    $selectedModel = $ComboBox_llm.selectedItem
+    # Get selected model from dropdown list 1 ($global:ComboBox_llm)
+    $selectedModel = $global:ComboBox_llm.selectedItem
     
     if ($selectedModel -match ".gguf") {
         # Get the new models name and prepare it to be used with the option later.
-        if ($selectedModel -match "-f16"){$renameModel = ($ComboBox_llm.selectedItem -split "-f16", 2)[0].Trim()}
-        if ($selectedModel -match "-f32"){$renameModel = ($ComboBox_llm.selectedItem -split "-f32", 2)[0].Trim()}
+        if ($selectedModel -match "-f16"){$renameModel = ($global:ComboBox_llm.selectedItem -split "-f16", 2)[0].Trim()}
+        if ($selectedModel -match "-f32"){$renameModel = ($global:ComboBox_llm.selectedItem -split "-f32", 2)[0].Trim()}
         # Extract parts from the selected item in the combobox.
-        $executable = ($ComboBox2.selectedItem).Split(' ')[0] # The executable to run.
-        $outtype = ($ComboBox2.selectedItem).Split(' ')[1] # The outtype which will also be used in the name.
+        $executable = ($global:ComboBox2.selectedItem).Split(' ')[0] # The executable to run.
+        $outtype = ($global:ComboBox2.selectedItem).Split(' ')[1] # The outtype which will also be used in the name.
         $nthreads = [Environment]::ProcessorCount #$NumberOfCores
         $args = "" # Empty list to be filled with all the args the user wants to apply.
             
         # Get arguments prepared
-        foreach ($arg in (($ComboBox2.selectedItem).Split(' '))){
+        foreach ($arg in (($global:ComboBox2.selectedItem).Split(' '))){
             if (($arg -ne $executable)-and($arg -ne $outtype)) {
                 $args += "$arg "
             }
@@ -175,8 +175,8 @@ function ggufDump {
 
         # Target directory containing GGUF files
         $ggufDir = "$path\Converted\"
-        #$selectedModel = $ComboBox_llm.selectedItem #selectedModel is set where gguf_dump is called. # Selected LLM from dropdown list. 
-        #$option = ($ComboBox2.selectedItem -split ' ', 2)[1].Trim() #option is set where gguf_dump is called.
+        #$selectedModel = $global:ComboBox_llm.selectedItem #selectedModel is set where gguf_dump is called. # Selected LLM from dropdown list. 
+        #$option = ($global:ComboBox2.selectedItem -split ' ', 2)[1].Trim() #option is set where gguf_dump is called.
     
         # Build the full path to the GGUF file
         $filePath = Join-Path $ggufDir $selectedModel
@@ -366,7 +366,7 @@ function Get-NewRelease{
 
 # Make Symlink for a selected model in the directory you designated in config.
 function SymlinkModel {
-    $selectedModel = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
+    $selectedModel = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
     if ($selectedModel -match ".gguf"){
         $global:cfg = "symlinkdir"; $symlinkdir = RetrieveConfig $global:cfg # get-set the flag for $symlinkdir.
         $note = "Admin permission required to create symlink in... $symlinkdir`n`nContinue?" ; $halt = Confirm # If the file exists then ask to overwrite.

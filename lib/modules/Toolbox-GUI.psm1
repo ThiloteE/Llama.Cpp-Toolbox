@@ -63,15 +63,15 @@ $main_form.Controls.Add($Label)
 
 # Dropdown list containing LLMs available to process.
 $Global:ComboBox_llm = New-Object System.Windows.Forms.ComboBox
-$ComboBox_llm.Width = 300
-$ComboBox_llm.Location  = New-Object System.Drawing.Point(160,30)
-$main_form.Controls.Add($ComboBox_llm)
+$global:ComboBox_llm.Width = 300
+$global:ComboBox_llm.Location  = New-Object System.Drawing.Point(160,30)
+$main_form.Controls.Add($global:ComboBox_llm)
 
 # Dropdown list containing scripts to process using the selected LLM.
 $Global:ComboBox2 = New-Object System.Windows.Forms.ComboBox
-$ComboBox2.Width = 150
-$ComboBox2.Location  = New-Object System.Drawing.Point(465,30)
-$main_form.Controls.Add($ComboBox2)
+$global:ComboBox2.Width = 150
+$global:ComboBox2.Location  = New-Object System.Drawing.Point(465,30)
+$main_form.Controls.Add($global:ComboBox2)
 
 # Button to process a script.
 $Button1 = New-Object System.Windows.Forms.Button
@@ -83,15 +83,15 @@ $main_form.Controls.Add($Button1)
 # 'Process' button action.
 $Button1.Add_Click({
     $label3.Text = "";$TextBox2.Text = "" # Clear the text.
-    $selectedDirectory = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
-    $selectedScript = $ComboBox2.selectedItem # Selected script from dropdown list.
+    $selectedDirectory = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
+    $selectedScript = $global:ComboBox2.selectedItem # Selected script from dropdown list.
         If ($selectedScript -match "model list") {ModelList} # Only requires Combobox2
         If ($selectedDirectory -eq $null) {$Label3.Text = "Select an LLM and script to process."}
         Else {If ($selectedScript -eq $null) {$Label3.Text = "Select a script to process the LLM."}
             ElseIf ($selectedScript -match "quantize") {QuantizeModel}
             ElseIf ($selectedScript -match "convert") {ConvertModel}
             ElseIf (($selectedScript -match "server") -or ($selectedScript -match "cli")) {LlamaChat}
-            ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $ComboBox_llm.selectedItem;$option = ($ComboBox2.selectedItem -split ' ', 2)[1].Trim();$print=1;ggufDump}
+            ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $global:ComboBox_llm.selectedItem;$option = ($global:ComboBox2.selectedItem -split ' ', 2)[1].Trim();$print=1;ggufDump}
             ElseIf ($selectedScript -match "symlink") {SymlinkModel}
             else {$Label3.Text = "The script entered:$selectedScript was not handled."}
             }
@@ -134,7 +134,7 @@ function SetButton {
             # Function to 'update' from list of LLMs.
             $label3.Text = ""
             $TextBox2.Text = "" # Clear the text.
-            $selectedDirectory = $ComboBox_llm.selectedItem # Selected LLM from dropdown list.
+            $selectedDirectory = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
             If ($selectedDirectory -eq $null) {
                 $Label3.Text = "LLM list updated, select an LLM to check git status."
             } Else {
