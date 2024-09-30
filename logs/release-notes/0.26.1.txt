@@ -4,7 +4,7 @@ A few changes to make things better.
 Added features in this merge.
 
 - Config Form
-  - A bugfix/enhancment has been made ensuring changes to the items may be committed as needed.
+  - A bugfix/enhancement has been made ensuring changes to the items may be committed as needed.
   - The buttons for items that "show" or "hide" options will present "Commit" when the item needs to be saved.
 
 - Task List
