@@ -41,16 +41,6 @@ function ListScripts {
     }
 }
 
-# Get list of combobox items for ConfigForm.
-function Get-ComboBoxItems ($global:labelText) {
-    $comboBox.Items.Clear()
-    if ($labelText -eq "build"){$items = @("cpu", "vulkan", "cuda")}
-    foreach ($item in $items) {
-        $comboBox.Items.Add($item)
-    }
-
-}
-
 # Create and update .gitignore if something is tracked it will not be ignored.
 function GitIgnore {
     Set-Location $Path

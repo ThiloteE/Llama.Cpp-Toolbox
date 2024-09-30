@@ -4,7 +4,7 @@
 # todo # Assist with update of Transformers
 
 # Llama.cpp-Toolbox GUI version
-$global:version_GUI = "0.1.0"
+$global:version_GUI = "0.1.1"
 
 Add-Type -AssemblyName System.Windows.Forms
 
@@ -288,61 +288,100 @@ function AboutForm {
 }
 
 function ConfigForm {
-    # Read lines from the configuration file
-    $lines = Get-Content $path\config.txt
+    if($global:debug){Write-Host "Debug: Entering ConfigForm function"}
 
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "Config Llama.cpp-Toolbox"
     $form.Size = New-Object System.Drawing.Size(550, 300)
+    if($global:debug){Write-Host "Debug: Created form with size 550x300"}
     
-    # Create the botom Panel first. (form fills from botom up)
+    # Create the bottom Panel first. (form fills from bottom up)
     $panel = New-Object System.Windows.Forms.Panel
     $panel.Dock = [System.Windows.Forms.DockStyle]::Fill
     $panel.AutoSize = $true
     $panel.AutoScroll = $true
     $form.Controls.Add($panel)
+    if($global:debug){Write-Host "Debug: Created and added panel to form"}
     
-    # Create the top ToolStrip last. (form fills from botom up)
+    # Create the top ToolStrip last. (form fills from bottom up)
     $toolStrip = New-Object System.Windows.Forms.ToolStrip
     $toolStrip.Dock = [System.Windows.Forms.DockStyle]::Top
     $toolStrip.AutoSize = $true
     $form.Controls.Add($toolStrip)
+    if($global:debug){Write-Host "Debug: Created and added toolStrip to form"}
 
     # Create a ToolStripButton for BranchManager
     $bmButton = New-Object System.Windows.Forms.ToolStripButton
     $bmButton.Text = "Branch Manager"
     $bmButton.Add_Click({BranchManager})
+    if($global:debug){Write-Host "Debug: Created Branch Manager button"}
 
     # Add buttons to the ToolStrip
     $toolStrip.Items.Add($bmButton)
+    if($global:debug){Write-Host "Debug: Added Branch Manager button to toolStrip"}
     
+    function RefreshConfigLines {
+        $global:lines = Get-Content $path\config.txt
+        if($global:debug){Write-Host "Debug: Refreshed config. Now have $($global:lines.Count) lines from config.txt"}
+    }
+
+    # Get list of combobox items for ConfigForm.
+    function Get-ComboBoxItems ($labelText, $comboBox) {
+        if($global:debug){Write-Host "Debug: Get-ComboBoxItems called for label: $labelText"}
     
-    $global:textBoxes = @{}
-    $global:formLabels = @{}
-    $global:comboBoxes = @{}
-    $global:toggleButtons = @{}
-    $global:commitButtons = @{}
-    $global:buttonIndices = @{}
+        if ($null -eq $comboBox) {
+            if($global:debug){Write-Host "Debug: ComboBox is null for label: $labelText"}
+            return
+        }
+
+        $comboBox.Items.Clear()
+        if($global:debug){Write-Host "Debug: Cleared ComboBox items"}
+
+        $items = @()
+        switch -Regex ($labelText) {
+            "build" {
+                $items = @("cpu", "cuda", "vulkan")
+                if($global:debug){Write-Host "Debug: Set items for build: $($items -join ', ')"}
+            }
+            "branch" {
+                $items = Get-GitBranch
+                if($global:debug){Write-Host "Debug: Got Git branches: $($items -join ', ')"}
+            }
+        }
+
+        foreach ($item in $items) {
+            $comboBox.Items.Add($item)
+        }
+        if($global:debug){Write-Host "Debug: Added $($items.Count) items to ComboBox"}
+
+        if ($comboBox.Items.Count -gt 0) {
+            $comboBox.SelectedIndex = 0
+            if($global:debug){Write-Host "Debug: Set SelectedIndex to 0"}
+        }
+
+        if($global:debug){Write-Host "Debug: ComboBox now has $($comboBox.Items.Count) items"}
+    }
+
+    $global:controlStates = @{}
 
     function CreateFormControls {
         $panel.Controls.Clear()
-        $global:textBoxes.Clear()
-        $global:formLabels.Clear()
-        $global:comboBoxes.Clear()
-        $global:toggleButtons.Clear()
-        $global:commitButtons.Clear()
-        $global:buttonIndices.Clear()
+        $global:textBoxes = @{}
+        $global:formLabels = @{}
+        $global:comboBoxes = @{}
+        $global:combinedButtons = @{}
+        $global:buttonIndices = @{}
+        RefreshConfigLines
 
         $yPosition = 10
-        
+    
         foreach ($index in 0..($lines.Count - 1)) {
             $line = $lines[$index]
-            if ($line -ne "" -and $line -notmatch "Toolbox" -and $line -notmatch "config.txt" -and $line -notmatch "Config-Version" -and $line -notmatch "help" -and $line -notmatch "rebuild"-and $line.Split('¦')[0].Trim() -ne "branch") {
-                $parts =  $line.Split('¦')
-                $global:labelText = $parts[0].Trim()
-                $textBoxText = $parts[1].Trim()
-                $comboBoxText = $parts[1].Trim()
-                
+            if ($line -ne "" -and $line -notmatch "Toolbox" -and $line -notmatch "config.txt" -and $line -notmatch "Config-Version" -and $line -notmatch "help" -and $line -notmatch "rebuild" -and $line.Split('¦')[0].Trim() -ne "branch") {
+                $parts = $line.Split('¦')
+                $labelText = $parts[0].Trim()
+                $controlText = $parts[1].Trim()
+            
                 $label = New-Object System.Windows.Forms.Label
                 $label.Text = $labelText
                 $label.AutoSize = $true
@@ -350,35 +389,126 @@ function ConfigForm {
                 $global:formLabels[$index] = $label
                 $panel.Controls.Add($label)
 
-                if ($global:labelText -match "show|hide") {
-                    $textBox = New-Object System.Windows.Forms.TextBox
-                    $textBox.Text = $textBoxText
-                    $textBox.Location = New-Object System.Drawing.Point(120, $yPosition)
-                    $textBox.Width = 300
-                    $global:textBoxes[$index] = $textBox
-                    $panel.Controls.Add($textBox)
-                    ToggleButton $index $yPosition $labelText
+                if ($labelText -match "build|branch") {
+                    $control = New-Object System.Windows.Forms.ComboBox
+                    $global:comboBoxes[$index] = $control
+                    Get-ComboBoxItems $labelText $global:comboBoxes[$index]
                 } else {
-                    if ($global:labelText -match "build|branch"){
-                    $global:comboBox = New-Object System.Windows.Forms.ComboBox
-                    $comboBox.SelectedText = $comboBoxText
-                    $comboBox.Location = New-Object System.Drawing.Point(120, $yPosition)
-                    $comboBox.Width = 300
-                    $global:comboBoxes[$index] = $comboBox ; $panel.Controls.Add($comboBox)
-                    Get-ComboBoxItems $global:labelText
-                    } else {
-                    $global:textBox = New-Object System.Windows.Forms.TextBox
-                    $textBox.Text = $textBoxText
-                    $textBox.Location = New-Object System.Drawing.Point(120, $yPosition)
-                    $textBox.Width = 300
-                    $global:textBoxes[$index] = $textBox ; $panel.Controls.Add($textBox)
-                    }
-                    CommitButton $index $yPosition
+                    $control = New-Object System.Windows.Forms.TextBox
+                    $global:textBoxes[$index] = $control
                 }
-                
+
+                $control.Name = "Control_$index"
+                $control.Text = $controlText
+                $control.Location = New-Object System.Drawing.Point(120, $yPosition)
+                $control.Width = 300
+                $panel.Controls.Add($control)
+
+                $global:controlStates[$index] = @{
+                    OriginalText = $controlText
+                    LastCommittedText = $controlText
+                    HasUncommittedChanges = $false
+                }
+
+                CombinedButton $index $yPosition $labelText $control
+            
                 $yPosition += 30
             }
         }
+    }
+
+    function CombinedButton($index, $yPosition, $labelText, $control) {
+        $button = New-Object System.Windows.Forms.Button
+        $button.Name = "Button_$index"
+        $global:buttonIndices[$button] = $index
+        $button.Location = New-Object System.Drawing.Point(430, $yPosition)
+        $button.Size = New-Object System.Drawing.Size(80,23)
+        $button.Text = if ($labelText -match "show") { "hide" } elseif ($labelText -match "hide") { "show" } else { "Commit" }
+        $panel.Controls.Add($button)
+
+        $global:combinedButtons[$index] = $button
+
+        if($global:debug){Write-Host "Debug: Initial state for control $($control.Name)"}
+        if($global:debug){Write-Host "  Original Text: '$($global:controlStates[$index].OriginalText)'"}
+        if($global:debug){Write-Host "  Last Committed Text: '$($global:controlStates[$index].LastCommittedText)'"}
+        if($global:debug){Write-Host "  Has Uncommitted Changes: $($global:controlStates[$index].HasUncommittedChanges)"}
+        if($global:debug){Write-Host "  Initial Button Text: $($button.Text)"}
+
+        $control.Add_TextChanged({
+            $thisControl = $this
+            $newText = $thisControl.Text
+            $associatedIndex = [int]($thisControl.Name -replace 'Control_', '')
+            $state = $global:controlStates[$associatedIndex]
+            $associatedButton = $global:combinedButtons[$associatedIndex]
+            $associatedLabelText = $global:formLabels[$associatedIndex].Text
+
+            if($global:debug){Write-Host "Debug: Text Changed Event"}
+            if($global:debug){Write-Host "  Control: $($thisControl.Name)"}
+            if($global:debug){Write-Host "  Associated Label: $associatedLabelText"}
+            if($global:debug){Write-Host "  Original Text: '$($state.OriginalText)'"}
+            if($global:debug){Write-Host "  Last Committed Text: '$($state.LastCommittedText)'"}
+            if($global:debug){Write-Host "  New Text: '$newText'"}
+            if($global:debug){Write-Host "  Change: '$($state.LastCommittedText)' -> '$newText'"}
+
+            if ($newText -ne $state.LastCommittedText) {
+                $state.HasUncommittedChanges = $true
+                $associatedButton.Text = "Commit"
+                if($global:debug){Write-Host "  Button text changed to: Commit (text is different from last committed)"}
+            } else {
+                $state.HasUncommittedChanges = $false
+                $buttonText = if ($associatedLabelText -match "show") { "hide" } 
+                              elseif ($associatedLabelText -match "hide") { "show" } 
+                              else { "Commit" }
+                $associatedButton.Text = $buttonText
+                if($global:debug){Write-Host "  Button text reverted to: $buttonText (text matches last committed)"}
+            }
+
+            if($global:debug){Write-Host "  Has Uncommitted Changes: $($state.HasUncommittedChanges)"}
+            if($global:debug){Write-Host "  Current Button Text: $($associatedButton.Text)"}
+        })
+
+        $button.Add_Click({
+            $clickedButton = $this
+            $clickedButtonIndex = $global:buttonIndices[$clickedButton]
+            $state = $global:controlStates[$clickedButtonIndex]
+            $labelText = $lines[$clickedButtonIndex]
+            $global:labelText = $labelText.Split('¦')[0].Trim()
+
+            $control = if ($labelText -match "build|branch") { $global:comboBoxes[$clickedButtonIndex] } else { $global:textBoxes[$clickedButtonIndex] }
+            $value = $control.Text
+
+            if ($labelText -match "show|hide" -and $clickedButton.Text -ne "Commit") {
+                # Handle show/hide toggle
+                $newLabelText = if ($labelText.Split('¦')[0].Trim() -eq "show") { "hide" } else { "show" }
+                ReplaceLine $labelText "$newLabelText¦$value"
+                RefreshConfigLines
+                $global:formLabels[$clickedButtonIndex].Text = $newLabelText
+                $global:labelText = $newLabelText
+                $clickedButton.Text = if ($newLabelText -eq "show") { "hide" } else { "show" }
+                $state.LastCommittedText = $value
+                $state.HasUncommittedChanges = $false
+            }
+            elseif ($labelText -match "show|hide" -and $clickedButton.Text -eq "Commit"){
+                $newValue = $labelText.Split('¦')[0].Trim()+'¦'+$value.Trim()
+                ReplaceLine $labelText $newValue
+                PerformAction "Saved" $newValue
+                RefreshConfigLines
+                $global:labelText = $newLabelText
+                $clickedButton.Text = if ($newLabelText -eq "show") { "show" } else { "hide" }
+                $state.LastCommittedText = $value
+                $state.HasUncommittedChanges = $false
+            }
+            elseif ($state.HasUncommittedChanges) {
+                # Handle other commits
+                $action = DetermineAction $clickedButtonIndex $value $clickedButton.Text
+                PerformAction $action $value
+                RefreshConfigLines
+                $state.LastCommittedText = $value
+                $state.HasUncommittedChanges = $false
+                $clickedButton.Text = "Commit"
+            }
+            ListScripts
+        })
     }
 
     CreateFormControls
@@ -386,61 +516,77 @@ function ConfigForm {
     $form.ShowDialog()
 }
 
-function ToggleButton($index, $yPosition, $labelText) {
-    $global:button = New-Object System.Windows.Forms.Button
-    $global:buttonIndices[$button] = $index
-    $button.Location = New-Object System.Drawing.Point(430, $yPosition)
-    $button.Size = New-Object System.Drawing.Size(80,23)
-    $button.Text = if ($labelText -match "show") { "hide" } else { "show" }
-    $panel.Controls.Add($button)
+function DetermineAction($index, $value, $ButtonState) {
+    $lineText = $lines[$index]
+    $global:cfgValue = $value.Trim()
+    $global:cfg = $lineText.Split('¦')[0].Trim()
     
-    $global:toggleButtons[$index] = $button
-    $button.Add_Click({
-        $thatText = $this.Text
-        $this.Text = if ($this.Text -eq "show") { "hide" } else { "show" }
-        $clickedButtonIndex = $global:buttonIndices[$this]
-        $labelText = $lines[$clickedButtonIndex]
-        $formLabels[$clickedButtonIndex].Text = $thatText
-        $global:labelText = $labelText.Split('¦')[0].Trim()
-        $value = $global:textBoxes[$clickedButtonIndex].Text
-        # Commit action logic
-        $action = DetermineAction $clickedButtonIndex $value
-        PerformAction $action $value
-    })
-}
-
-function CommitButton($index, $yPosition) {
-    $button = New-Object System.Windows.Forms.Button
-    $global:buttonIndices[$button] = $index
-    $button.Location = New-Object System.Drawing.Point(430, $yPosition)
-    $button.Size = New-Object System.Drawing.Size(80, 23)
-    $button.Text = "Commit"
-    $panel.Controls.Add($button)
-
-    # Directly assign to the dictionary
-    $global:commitButtons[$index] = $button
-
-    $button.Add_Click({
-        $clickedButtonIndex = $global:buttonIndices[$this]
-        $labelText = $lines[$clickedButtonIndex]
-        $global:labelText = $labelText.Split('¦')[0].Trim()
-        $value = if ($global:labelText -match "build|branch") {
-            $global:comboBoxes[$clickedButtonIndex].Text
-        } else {
-            $global:textBoxes[$clickedButtonIndex].Text
+    switch -Regex ($lineText) {
+        "show|hide" {
+            if ($global:cfgValue -eq "") { return "Error" }
+            else { return "ToggleVisibility" }
         }
-        # Commit action logic
-        $action = DetermineAction $clickedButtonIndex $value
-        PerformAction $action $value
-    })
+        "repo" {
+            
+            if ($global:cfgValue -eq "") { return "Error" }
+            else {$global:cfgValue = CleanRepo $global:cfgValue ; return "RepoSet" }
+        }
+        "branch" {
+            if ($global:cfgValue -eq "") { return "Error" }
+            else { 
+                Set-GitBranch $global:cfgValue
+                RefreshBranchComboBox
+                return "BuildLlama" }
+        }
+        "build" {
+            if ($global:cfgValue -eq "") { return "Error" }
+            else {
+                if($value.Trim() -eq "cuda"){
+                    try {if (nvcc --version){$BuildTest = $true}
+                    } catch {$BuildTest = $false;[System.Windows.Forms.MessageBox]::Show("Nvidia CudaToolkit is required for NVIDIA GPU build.")}
+                    }
+                if($value.Trim() -eq "vulkan"){
+                    try {if (vulkaninfo --help){$BuildTest = $true}
+                    } catch {$BuildTest = $false;[System.Windows.Forms.MessageBox]::Show("AMD VulkanSDK is required for AMD GPU build.")}
+                    }
+                if($value.Trim() -eq "cpu"){
+                    $BuildTest = $true
+                }
+                if ($BuildTest -ne $false){ EditConfig $global:cfg ; return "BuildLlama" } else { "Error" }
+            }
+        }
+        default {
+            if ($global:cfgValue -eq "") { return "Error" }
+            else { return "DefaultAction" }
+        }
+    }
 }
 
-function CleanRepo ($text) {
-    if ($text -match '([\w-]+/llama\.cpp)(\.git)?$') {
-        return $Matches[1] + ".git"
-    } else {
-        Write-Error "The input string does not end with the required pattern."
-        return $null
+function PerformAction($action, $value) {
+    switch ($action) {
+        "ToggleVisibility" { 
+            # This is now handled in the button click event
+        }
+        "Saved" { 
+            [System.Windows.Forms.MessageBox]::Show("Committed record $value")
+        }
+        "Error" { 
+            [System.Windows.Forms.MessageBox]::Show("Invalid input or missing requirements.")
+        }
+        "RepoSet" { 
+            Set-GitRepo $global:cfgValue
+            RefreshBranchComboBox
+            [System.Windows.Forms.MessageBox]::Show("The repo for Llama.Cpp has been changed, you must set the branch to be built.")
+        }
+        "BuildLlama" { 
+            $global:cfgValue = "True"; $global:cfg = "rebuild"; EditConfig $global:cfg
+            [System.Windows.Forms.MessageBox]::Show("Llama.Cpp has been scheduled to be rebuilt.")
+            SetButton
+        }
+        "DefaultAction" { 
+            EditConfig $global:cfg
+            [System.Windows.Forms.MessageBox]::Show("Committed record $global:cfg¦$value")
+        }
     }
 }
 
@@ -450,63 +596,16 @@ $fileContent = Get-Content $path\config.txt -Raw
 # Replace the old text with the new text
 $newContent = $fileContent -replace $lineText, $ReplacementTxt
 
-# Write the modified content back to the file
-Set-Content $path\config.txt -Value $newContent -Force
+# Save the updated content back to the file without adding a newline at the end
+$newContent -join "`r`n" | Set-Content -Path "$path\config.txt" -NoNewline
 }
 
-function DetermineAction($index, $value) {
-    $lineText = $lines[$index]
-    #write-host "Determine $lineText $value"
-    $global:cfgValue =  $value.Trim()
-    $global:cfg = $lineText.Split('¦')[0].Trim()
-    $ReplacementTxt = $value.Trim()
-    if($value.Trim() -eq "cpu"){$BuildTest = $true}else{$BuildTest = $false}
-    switch -Regex ($lineText) {
-        "show" {ReplaceLine $lineText "hide¦$ReplacementTxt" ; return "Saved"}
-        "hide" {ReplaceLine $lineText "show¦$ReplacementTxt" ; return "Saved"}
-        "repo" {
-            $global:cfgValue = CleanRepo $global:cfgValue
-            if($global:cfgValue -eq ""){ $ErrorMessage = [System.Windows.Forms.MessageBox]::Show("Input a git repo like this one 'ggerganov/llama.cpp.git'") ; return "Error"}
-            else { Set-GitRepo $global:cfgValue ; RefreshBranchComboBox ; return "RepoSet" }
-            }
-        "branch" {
-            if($global:cfgValue -eq ""){$ErrorMessage = [System.Windows.Forms.MessageBox]::Show("You must set a branch to be built.") ; return "Error"}
-            else{ Set-GitBranch $global:cfgValue ; RefreshBranchComboBox ; return "BuildLlama" }
-            }
-        "build" {
-            if($value.Trim() -eq "cuda"){
-                try {if (nvcc --version){$BuildTest = $true}
-                } catch {[System.Windows.Forms.MessageBox]::Show("Nvidia CudaToolkit is required for NVIDIA GPU build.")}
-                }
-            if($value.Trim() -eq "vulkan"){
-                try {if (vulkaninfo --help){$BuildTest = $true}
-                } catch {[System.Windows.Forms.MessageBox]::Show("AMD VulkanSDK is required for AMD GPU build.")}
-                }
-            if ($BuildTest -ne $false){ EditConfig $global:cfg ; return "BuildLlama" } else { }
-            }
-        default { EditConfig $global:cfg ; return "DefaultAction" }
-    }
-}
-
-function PerformAction($action, $value) {
-    #write-host "Perform $action $value"
-    switch ($action) {
-        "Saved" { ListScripts }
-        "Error" { 
-            $ErrorMessage
-        }
-        "RepoSet" { 
-            [System.Windows.Forms.MessageBox]::Show("The repo for Llama.Cpp has been changed, you must set the branch to be built.")
-        }
-        "BuildLlama" { 
-            # Build the new branch.
-            $global:cfgValue = "True"; $global:cfg = "rebuild"; EditConfig $global:cfg # get-set the flag for $rebuild.
-            [System.Windows.Forms.MessageBox]::Show("Llama.Cpp has been scheduled to be rebuilt.")
-            SetButton
-        }
-        "DefaultAction" { 
-            [System.Windows.Forms.MessageBox]::Show("Comitted record $global:cfg¦$value")
-        }
+function CleanRepo ($text) {
+    if ($text -match '([\w-]+/llama\.cpp)(\.git)?$') {
+        return $Matches[1] + ".git"
+    } else {
+        Write-Error "The input string does not end with the required pattern."
+        return $null
     }
 }
 
