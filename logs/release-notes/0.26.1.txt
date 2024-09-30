@@ -1,12 +1,16 @@
 Version 0.26.1
-A couple of changes.
+A few changes to make things better.
 
 Added features in this merge.
 
 - Config Form
   - A bugfix/enhancment has been made ensuring changes to the items may be committed as needed.
+  - The buttons for items that "show" or "hide" options will present "Commit" when the item needs to be saved.
 
 - Task List
   -  The name for the model-list task has been updated.
 	- This list of models can be entered in the open-llm-leaderboard to compare your local collection.
 	[open-llm-leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard)
+
+- VersionCheck
+  - Present the release notes on first run in descending order.

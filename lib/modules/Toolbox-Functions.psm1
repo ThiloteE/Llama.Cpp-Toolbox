@@ -2,14 +2,27 @@
 # Contains the functions.
 
 # Toolbox-Functions version
-$global:version_func = "0.1.0"
+$global:version_func = "0.1.1"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck {
     $global:cfg = "rebuild"; $global:rebuild = RetrieveConfig $global:cfg # get-set the flag for $rebuild.
     $global:cfg = "Llama.Cpp-Toolbox"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for old Toolbox version.
     if ($version -ne $global:cfgVersion){
-    $TextBox2.Text = Get-Content "$path\logs\release-notes\$version.txt" -Delimiter `n
+    # Get all release notes files
+    $releaseNotes = Get-ChildItem "$path\logs\release-notes\*.txt" | Sort-Object Name -Descending
+
+    # Initialize an empty array to store the content
+    $allContent = @()
+
+    # Read the content of each file and add it to the array
+    foreach ($file in $releaseNotes) {
+        $content = Get-Content $file.FullName -Raw
+        $allContent += ">>> Release Notes: $content`r`n`r`n`r`n"
+    }
+
+    # Join all content and set it to $TextBox2.Text
+    $TextBox2.Text = $allContent -join "`r`n"
     $global:cfgValue = $version ; EditConfig $global:cfg # Update config with new value.
     # Get the version of the config text, if it matches the file we can skip this update.
     $global:cfg = "Config-Version"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for version.
