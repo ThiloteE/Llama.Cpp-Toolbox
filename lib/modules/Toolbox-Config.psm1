@@ -2,7 +2,7 @@
 # Contains the configuration functions.
 
 # Toolbox Config Text Version
-$global:version_cfg = "0.1.0"
+$global:version_cfg = "0.1.1"
 
 # The config text for this release.
 $script:cfgText = "Llama.Cpp-Toolbox¦$version
@@ -18,7 +18,7 @@ release_branch¦default
 symlinkdir¦$path\Symlinks
 maxCtx¦4096
 show¦symlink
-show¦model list
+show¦model-list
 show¦llama-server 8080
 show¦convert_hf_to_gguf.py
 show¦convert_gptj_to_gguf.py

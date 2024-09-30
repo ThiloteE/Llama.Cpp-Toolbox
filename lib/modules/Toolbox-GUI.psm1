@@ -83,7 +83,7 @@ $Button1.Add_Click({
     $label3.Text = "";$TextBox2.Text = "" # Clear the text.
     $selectedDirectory = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
     $selectedScript = $global:ComboBox2.selectedItem # Selected script from dropdown list.
-    If ($selectedScript -match "model list") {ModelList} # Only requires Combobox2
+    If ($selectedScript -match "model-list") {ModelList} # Only requires Combobox2
     else{
         If ($selectedDirectory -eq $null) {$Label3.Text = "Select an LLM and script to process."}
         else {
