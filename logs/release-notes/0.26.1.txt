@@ -1,0 +1,12 @@
+Version 0.26.1
+A couple of changes.
+
+Added features in this merge.
+
+- Config Form
+  - A bugfix/enhancment has been made ensuring changes to the items may be committed as needed.
+
+- Task List
+  -  The name for the model-list task has been updated.
+	- This list of models can be entered in the open-llm-leaderboard to compare your local collection.
+	[open-llm-leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard)
