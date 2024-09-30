@@ -69,6 +69,7 @@ $main_form.Controls.Add($global:ComboBox_llm)
 $Global:ComboBox2 = New-Object System.Windows.Forms.ComboBox
 $global:ComboBox2.Width = 150
 $global:ComboBox2.Location  = New-Object System.Drawing.Point(465,30)
+$global:ComboBox2.DropDownWidth = 255  # Show more of the content in the drop down list.
 $main_form.Controls.Add($global:ComboBox2)
 
 # Button to process a script.
