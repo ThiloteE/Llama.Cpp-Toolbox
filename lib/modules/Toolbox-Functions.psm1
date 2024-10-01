@@ -2,7 +2,7 @@
 # Contains the functions.
 
 # Toolbox-Functions version
-$global:version_func = "0.1.1"
+$global:version_func = "0.1.2"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck {
@@ -236,15 +236,27 @@ function UpdateLlama {
     $gitstatus = Invoke-Expression "git status"
     $TextBox2.Text = $gitstatus
     $log_name = "llamaCpp" # Send this to Log-GitUpdate for the file name.
-    If ($gitstatus -match "pull") {# If updates exist get and build them.
+    If ($gitstatus -match "pull") {# If updates exist get them and update the packages.
         $label3.Text = "Updating..."
         $gitstatus = Invoke-Expression "git pull"
         Update-Log $gitstatus $log_name
+        UpdatePackages
         $label3.Text = "Update completed, set a new branch to build."
         }
     Else {$label3.Text = "No changes to llama.cpp detected."}
     $global:cfg = "branch" ; $branch = RetrieveConfig $global:cfg # get-set the flag for $branch.
     git checkout $branch # Return to expected branch.
+}
+
+# Ensure expected packages are installed and ready.
+function UpdatePackages {
+    Set-Location -Path $path
+    python -m venv venv
+    .\venv\Scripts\activate
+    python.exe -m pip install --upgrade pip
+    python -m pip install -r $path\llama.cpp\requirements.txt
+    pyenv rehash
+    deactivate
 }
 
 # Install Llama.Cpp for the toolbox on first run.
@@ -256,11 +268,7 @@ function InstallLlama {
     pyenv local 3.11
     pip install cmake
     pyenv rehash
-    python -m venv venv
-    .\venv\Scripts\activate
-    python -m pip install -r $path\llama.cpp\requirements.txt
-    pyenv rehash
-    deactivate
+    UpdatePackages
     Set-Location -Path $path\llama.cpp
     $branch = Get-NewRelease # Get the latest release version.
     Set-GitBranch $branch # Set the cfg to this branch then build it.
@@ -339,6 +347,7 @@ function Set-GitBranch ($branch) {
     git checkout $branch # Change branch using Git.
     git reset --hard $branch # Remove changes from other repo/branch.
     git submodule update --init --recursive
+    UpdatePackages # Ensure the expected packages are installed.
     $label3.Text = "Branch changed, remember to rebuild..."
 }
 
