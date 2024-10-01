@@ -1,0 +1,13 @@
+Version 0.26.2
+An important change to ensure your always using the expected packages when llama.cpp is built.
+
+Added features in this merge.
+
+- Update Llama.cpp
+  - The packages for llama.cpp are updated according to the requirements.txt file.
+
+- Task List
+  - Increased the visible space of the drop down list box.
+
+- Config Form
+  - Branch changes will also set the packages according to their requirements.txt file.
