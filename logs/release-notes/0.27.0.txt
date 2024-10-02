@@ -1,0 +1,15 @@
+Version 0.27.0
+Llama Chat has been upgraded!
+
+Added features in this merge.
+
+- Optimizer
+  - I have reworked the detection system for NGL to include Context.
+  - It will first try the lowest context setting you wish to use "minCtx".
+  - If it fails at your minCtx then it will lower the NGL and try again until it runs.
+  - It will then try the maximum context the model is trained for.
+  - If it works with that it will use it otherwise it will find the highest setting that works.
+
+- Task List
+  - llama-server will now detect and save the optimum settings for ngl and context per model.
+  - llama-server will use the last working settings saved in the chat-settings.json file.
