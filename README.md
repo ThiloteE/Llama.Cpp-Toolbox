@@ -10,10 +10,12 @@ Here's an overview of its functionality:
 
 **Config**
   - This menu item will open the config form that will allow you to manage Toolbox options and llama.cpp branches.
+  - Select the release or dev branch you wish to build, all package requirements will be set as needed.
   - You may edit and show or hide options for the task list menu.
  
  **Update llama.cpp**
    - This menu item allows you to use the latest git pull of llama.cpp from its GitHub repository. It will prompt you with a confirmation message before proceeding. Upon completion, it will not update the toolbox GUI.
+   - The package requirements will be updated ensuring you have the latest packages for your build.
 
  **Update Toolbox**
    - This menu item allows you to update the LlamaCpp-Toolbox itself from its GitHub repository. It will prompt you with a confirmation message before proceeding. Upon completion, it will restart the toolbox GUI as needed, for any changes to take effect.
