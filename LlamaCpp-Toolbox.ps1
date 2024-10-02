@@ -3,7 +3,7 @@
 # This also acts as the toolbox environment setup script.
 
 # Llama.cpp-Toolbox version
-$global:version = "0.26.2"
+$global:version = "0.27.0"
 
 #$global:debug = $true
 
@@ -26,6 +26,7 @@ Import-Module $path\lib\modules\Toolbox-Config.psm1
 Import-Module $path\lib\modules\Llama-Chat.psm1
 Import-Module $path\lib\modules\Toolbox-Functions.psm1
 Import-Module $path\lib\modules\Toolbox-GUI.psm1
+Import-Module $path\lib\modules\Toolbox-Functions-Args.psm1
 }
 
 # Check for prerequisites and install as needed on first run or when CFG is not detected.
