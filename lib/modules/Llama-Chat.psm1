@@ -15,8 +15,14 @@
 # Llama-Chat version
 $global:Llama_Chat_Ver = 0.2.1
 
-function LlamaChat ($selectedModel, $selectedScript) {
+function LlamaChat ($selectedModel, $selectedScript, $ProcessArray) {
     if ($selectedModel -match ".gguf") {}else{break} # Only process the .gguf models
+    # If there is a process already running send message.
+    if ($ProcessArray -ne $null) {
+        #write-host write-host "First retrieve: $ProcessArray"
+        $halt = Confirm "You are already running a process. `n`nWould you like to stop it before you continue?" # Inform the user this will take a while.
+        if($halt -eq 0){Stop-Process -Name $ProcessArray[1].Name -Force -ErrorAction SilentlyContinue}{}
+    }#else{write-host write-host "First retrieve: $ProcessArray"}
     $logsPath = "$path\logs\inference"
     if(!(Test-Path $logsPath)){mkdir $logsPath}
     # Extract parts from the selected item in the combobox.
@@ -98,9 +104,9 @@ function LlamaChat ($selectedModel, $selectedScript) {
     if ($extractedNGL) { $Optimal_NGL = $extractedNGL }
 
     # For debugging
-    Write-Host "Args string: $originalArgs"
-    Write-Host "Extracted CTX: $Optimal_CTX"
-    Write-Host "Extracted NGL: $Optimal_NGL"
+    #Write-Host "Args string: $originalArgs"
+    #Write-Host "Extracted CTX: $extractedCTX"
+    #Write-Host "Extracted NGL: $extractedNGL"
 
     if($Optimal_CTX -ne $null){
         Set-Location -Path $path\logs\inference # Logs will be saved here.
@@ -123,7 +129,7 @@ function LlamaChat ($selectedModel, $selectedScript) {
             )
 
             $serverArgs = "-m $modelPath $arguments --log-file $logPath -c $contextLength -ngl $ngl -t $nthreads"
-    
+            #write-host $llamaExePath $serverArgs
             try {
                 "" | Out-File -FilePath $logPath -Force
                 $process = Start-Process -FilePath $llamaExePath -ArgumentList $serverArgs -PassThru -NoNewWindow
@@ -139,6 +145,7 @@ function LlamaChat ($selectedModel, $selectedScript) {
                         if ($logContent -match "main: model loaded") {
                             Write-Host "Server started successfully"
                             return $process
+                            #write-host write-host "First return process: $process"
                         }
                         if ($logContent -match "Error|OutOfDeviceMemory") {
                             throw "Server failed to start: Memory or other error detected"
@@ -164,13 +171,15 @@ function LlamaChat ($selectedModel, $selectedScript) {
             $process = Start-LlamaServer `
                 -modelPath "$path\Converted\$selectedModel" `
                 -llamaExePath "$path\llama.cpp\build\bin\Release\$executable" `
-                -args $arguments `
+                -arguments $arguments `
                 -contextLength $ChatSettings.Optimal_CTX `
                 -ngl $ChatSettings.Optimal_NGL `
                 -nthreads $nthreads `
                 -logPath "$path\logs\inference\$selectedModel.log"
     
-            $TextBox2.Text = "Server started successfully"
+            $label3.Text = "$selectedModel Server started successfully."
+            $returnValue = $process
+            #write-host write-host "Seccond return process: $process"
         }
         catch {
             $label3.Text = "Loading failed..."
@@ -287,9 +296,13 @@ function LlamaChat ($selectedModel, $selectedScript) {
             Write-Warning "This model could not be loaded."
             break
             }
-            else{SaveSettings $selectedModel $context $NGL ; return $runningProcesses ; break}
+            else{ SaveSettings $selectedModel $context $NGL
+                $returnValue = $process
+                #write-host write-host "Third return process: $process"
+            break}
         }
     }
+    #write-host "Last return: $returnValue"
+return $returnValue
 }
-
 Export-ModuleMember -Function * -Variable * -Alias *

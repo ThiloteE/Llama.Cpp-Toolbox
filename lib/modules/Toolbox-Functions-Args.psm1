@@ -1,4 +1,4 @@
-# Llama-Chat version
+# Optimizer version
 $global:Optimizer_Ver = 0.1.1
 
 function Get-OptimumArgs ($executable, $selectedModel, $minCtx, $maxCtx, $maxNGL) {
