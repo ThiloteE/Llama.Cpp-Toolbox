@@ -9,6 +9,7 @@ Bug-fixes in this merge.
 
 - LlamaChat
   - llama-server will not try to run directories now.
+  - Override the optimizer by providing your context and ngl settings in the args "-c 8192 -ngl 33".
 
 - Reduce $Global:vars
   - Use parameters instead.
