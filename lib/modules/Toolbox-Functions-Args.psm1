@@ -1,5 +1,5 @@
 # Llama-Chat version
-$global:Optimizer_Ver = 0.1.0
+$global:Optimizer_Ver = 0.1.1
 
 function Get-OptimumArgs ($executable, $selectedModel, $minCtx, $maxCtx, $maxNGL) {
     $modelPath = "$path\Converted\$selectedModel"

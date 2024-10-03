@@ -17,17 +17,26 @@ $global:Llama_Chat_Ver = 0.2.1
 
 function LlamaChat ($selectedModel, $selectedScript) {
     if ($selectedModel -match ".gguf") {}else{break} # Only process the .gguf models
+    $logsPath = "$path\logs\inference"
+    if(!(Test-Path $logsPath)){mkdir $logsPath}
     # Extract parts from the selected item in the combobox.
     $executable = $selectedScript.Split(' ')[0] # The executable to run.
     $selectedModel # Selected LLM from dropdown list.
     $nthreads = [Environment]::ProcessorCount #$NumberOfCores
-    if ($executable -match "llama-server"){$port = $selectedScript.Split(' ')[1]; $args = "--port $port "} # The port which will be used to run the web client.
-    else{$args = ""} # Empty list to be filled with all the args the user wants to apply.
-            
-    # Preparing the arguments from Config.txt, skip the exe and the port add the rest
-    foreach ($arg in ($selectedScript.Split(' '))){
-        if (($arg -ne $executable)-and($arg -ne $port)) {
-            $args += "$arg "
+    
+    $originalArgs = "" # Initialize the var.
+    # First, ensure $args is properly initialized
+    if ($executable -match "llama-server") {
+        $port = $selectedScript.Split(' ')[1]
+        $originalArgs = "--port $port "
+    } else {
+        $originalArgs = ""
+    }
+
+    # Prepare arguments from provided text.
+    foreach ($arg in ($selectedScript.Split(' '))) {
+        if (($arg -ne $executable) -and ($arg -ne $port)) {
+            $originalArgs += "$arg "
         }
     }
 
@@ -63,17 +72,42 @@ function LlamaChat ($selectedModel, $selectedScript) {
         }
         return $null
     }
+
+    # Function to safely extract parameter values
+    function Get-ParameterValue {
+        param(
+            [string]$argsString,
+            [string]$paramName
+        )
     
+        if ($argsString -match "\s$paramName\s+(\S+)") {
+            return $matches[1]
+        }
+        return $null
+    }
+
     $ChatSettings = Get-ChatsSettings $selectedModel
     $Optimal_CTX = $ChatSettings.Optimal_CTX
     $Optimal_NGL = $ChatSettings.Optimal_NGL
+
+    # Extract -c and -ngl values more reliably
+    $extractedCTX = Get-ParameterValue -argsString $originalArgs -paramName "-c"
+    $extractedNGL = Get-ParameterValue -argsString $originalArgs -paramName "-ngl"
+
+    if ($extractedCTX) { $Optimal_CTX = $extractedCTX }
+    if ($extractedNGL) { $Optimal_NGL = $extractedNGL }
+
+    # For debugging
+    Write-Host "Args string: $originalArgs"
+    Write-Host "Extracted CTX: $Optimal_CTX"
+    Write-Host "Extracted NGL: $Optimal_NGL"
 
     if($Optimal_CTX -ne $null){
         Set-Location -Path $path\logs\inference # Logs will be saved here.
         $logPath = "$path\logs\inference\$selectedModel.log"
         $modelPath = "$path\Converted\$selectedModel"
         $llamaExePath = "$path\llama.cpp\build\bin\Release\$executable"
-        $arguments = "$args --log-file $logPath -c $Optimal_CTX -ngl $Optimal_NGL -t $nthreads" # Set the dynamic args.
+        $arguments = "$originalArgs --log-file $logPath -c $Optimal_CTX -ngl $Optimal_NGL -t $nthreads" # Set the dynamic args.
         $command = "$llamaExePath -m $modelPath $arguments" # Write the command to run.
         $TextBox2.Text = "Set-Location -Path $path\logs; $command" # Provide the command for the user to review.
 
@@ -81,14 +115,14 @@ function LlamaChat ($selectedModel, $selectedScript) {
             param(
                 [string]$modelPath,
                 [string]$llamaExePath,
-                [string]$args,
+                [string]$arguments,
                 [int]$contextLength,
                 [int]$ngl,
                 [int]$nthreads,
                 [string]$logPath
             )
 
-            $serverArgs = "-m $modelPath $args --log-file $logPath -c $contextLength -ngl $ngl -t $nthreads"
+            $serverArgs = "-m $modelPath $arguments --log-file $logPath -c $contextLength -ngl $ngl -t $nthreads"
     
             try {
                 "" | Out-File -FilePath $logPath -Force
@@ -130,7 +164,7 @@ function LlamaChat ($selectedModel, $selectedScript) {
             $process = Start-LlamaServer `
                 -modelPath "$path\Converted\$selectedModel" `
                 -llamaExePath "$path\llama.cpp\build\bin\Release\$executable" `
-                -args $args `
+                -args $arguments `
                 -contextLength $ChatSettings.Optimal_CTX `
                 -ngl $ChatSettings.Optimal_NGL `
                 -nthreads $nthreads `
@@ -171,6 +205,7 @@ function LlamaChat ($selectedModel, $selectedScript) {
 
         while (!$runningProcesses -and $NGL -ne 0 ){
             $optimumArgs = Get-OptimumArgs $executable $selectedModel $minCtx $maxContext $maxNGL
+            #write-host $optimumArgs
             $context = $optimumArgs.Split(',')[0]
             $NGL = $optimumArgs.Split(',')[1]
             Set-Location -Path $path\logs\inference # Logs will be saved here.
@@ -192,7 +227,7 @@ function LlamaChat ($selectedModel, $selectedScript) {
             }
 
             #cls # Clear the screen
-            $arguments = "$args --log-file $logPath -c $context -ngl $NGL -t $nthreads" # Set the dynamic args.
+            $arguments = "$originalArgs --log-file $logPath -c $context -ngl $NGL -t $nthreads" # Set the dynamic args.
             $command = "$llamaExePath -m $modelPath $arguments" # Write the command to run.
             $TextBox2.Text = "Set-Location -Path $path\logs; $command" # Provide the command for the user to review.
             try {$job = Start-Job -ScriptBlock { Invoke-Expression $args[0] } -ArgumentList $command # Try the command.
@@ -209,7 +244,7 @@ function LlamaChat ($selectedModel, $selectedScript) {
 
                 # Define path for chat-settings.json file
                 if (!(Test-Path -Path "$path\lib\settings")) {
-                    New-Item -ItemType Directory -Force -Path "$path\lib\settings" | Out-Null
+                    mkdir "$path\lib\settings" | Out-Null
                 }
 
                 $settingsFile = Join-Path -Path "$path\lib\settings" -ChildPath "chat-settings.json"
@@ -246,11 +281,13 @@ function LlamaChat ($selectedModel, $selectedScript) {
                 $NGL = $NGL - 1
                 Write-Host "The process '$processName' is not running."
             }
+
             # If the model can be used 
-            if($NGL -eq 0){$label3.Text = "$selectedModel failed to load." ; Write-Warning "This model could not be loaded.";break}
-            else{$halt = Confirm "The server is running.`n`nWould you like to save settings and stop?`n`n Either option will stop the server when you are ready." # Inform the user this will take a while.
-                    if($halt -eq 0){ SaveSettings $selectedModel $context $NGL ; StopProcess ; break } else { StopProcess ; break }
+            if($NGL -eq 0){$label3.Text = "$selectedModel failed to load."
+            Write-Warning "This model could not be loaded."
+            break
             }
+            else{SaveSettings $selectedModel $context $NGL ; return $runningProcesses ; break}
         }
     }
 }

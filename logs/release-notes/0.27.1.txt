@@ -15,4 +15,4 @@ Bug-fixes in this merge.
   - TODO: More of this later where needed.
 
 - New files & directories
-  - Change the way they are created to resolve errors.
+  - Change when and how they are created to resolve errors.
