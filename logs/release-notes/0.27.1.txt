@@ -9,3 +9,10 @@ Bug-fixes in this merge.
 
 - LlamaChat
   - llama-server will not try to run directories now.
+
+- Reduce $Global:vars
+  - Use parameters instead.
+  - TODO: More of this later where needed.
+
+- New files & directories
+  - Change the way they are created to resolve errors.
