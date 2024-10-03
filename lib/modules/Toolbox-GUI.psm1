@@ -4,7 +4,7 @@
 # todo # Assist with update of Transformers
 
 # Llama.cpp-Toolbox GUI version
-$global:version_GUI = "0.1.2"
+$global:version_GUI = "0.1.3"
 
 Add-Type -AssemblyName System.Windows.Forms
 
@@ -82,8 +82,8 @@ $main_form.Controls.Add($Button1)
 # 'Process' button action.
 $Button1.Add_Click({
     $label3.Text = "";$TextBox2.Text = "" # Clear the text.
-    $selectedDirectory = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
-    $selectedScript = $global:ComboBox2.selectedItem # Selected script from dropdown list.
+    $selectedDirectory = $global:ComboBox_llm.Text # Selected LLM from dropdown list.
+    $selectedScript = $global:ComboBox2.Text # Selected script from dropdown list.
     If ($selectedScript -match "model-list") {ModelList} # Only requires Combobox2
     else{
         If ($selectedDirectory -eq $null) {$Label3.Text = "Select an LLM and script to process."}
@@ -92,7 +92,7 @@ $Button1.Add_Click({
             ElseIf ($selectedScript -match "quantize") {QuantizeModel}
             ElseIf ($selectedScript -match "convert") {ConvertModel}
             ElseIf (($selectedScript -match "server") -or ($selectedScript -match "cli")) {LlamaChat $selectedDirectory $selectedScript}
-            ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $global:ComboBox_llm.selectedItem;$option = ($global:ComboBox2.selectedItem -split ' ', 2)[1].Trim();$print=1;ggufDump $selectedModel $option $print}
+            ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $global:ComboBox_llm.Text;$option = ($global:ComboBox2.Text -split ' ', 2)[1].Trim();$print=1;ggufDump $selectedModel $option $print}
             ElseIf ($selectedScript -match "symlink") {SymlinkModel}
             else {$Label3.Text = "The script entered:$selectedScript was not handled."}
             }
@@ -133,7 +133,7 @@ function SetButton {
             # Function to 'update' from list of LLMs.
             $label3.Text = ""
             $TextBox2.Text = "" # Clear the text.
-            $selectedDirectory = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
+            $selectedDirectory = $global:ComboBox_llm.Text # Selected LLM from dropdown list.
             If ($selectedDirectory -eq $null) {
                 $Label3.Text = "LLM list updated, select an LLM to check git status."
             } Else {
@@ -378,7 +378,7 @@ function ConfigForm {
     
         foreach ($index in 0..($lines.Count - 1)) {
             $line = $lines[$index]
-            if ($line -ne "" -and $line -notmatch "Toolbox" -and $line -notmatch "config.txt" -and $line -notmatch "Config-Version" -and $line -notmatch "help" -and $line -notmatch "rebuild" -and $line.Split('¦')[0].Trim() -ne "branch") {
+            if ($line -ne "" -and $line.Split('¦')[0] -notmatch "Toolbox" -and $line.Split('¦')[0] -notmatch "config.txt" -and $line.Split('¦')[0] -notmatch "Config-Version" -and $line.Split('¦')[0] -notmatch "help" -and $line.Split('¦')[0] -notmatch "rebuild" -and $line.Split('¦')[0].Trim() -ne "branch") {
                 $parts = $line.Split('¦')
                 $labelText = $parts[0].Trim()
                 $controlText = $parts[1].Trim()
