@@ -89,8 +89,8 @@ $Button1.Add_Click({
         If ($selectedDirectory -eq $null) {$Label3.Text = "Select an LLM and script to process."}
         else {
             If ($selectedScript -eq $null) {$Label3.Text = "Select a script to process the LLM."}
-            ElseIf ($selectedScript -match "quantize") {QuantizeModel}
-            ElseIf ($selectedScript -match "convert") {ConvertModel}
+            ElseIf ($selectedScript -match "quantize") {QuantizeModel $selectedDirectory $selectedScript}
+            ElseIf ($selectedScript -match "convert") {ConvertModel $selectedDirectory $selectedScript}
             ElseIf (($selectedScript -match "server") -or ($selectedScript -match "cli")) {LlamaChat $selectedDirectory $selectedScript}
             ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $global:ComboBox_llm.Text;$option = ($global:ComboBox2.Text -split ' ', 2)[1].Trim();$print=1;ggufDump $selectedModel $option $print}
             ElseIf ($selectedScript -match "symlink") {SymlinkModel}

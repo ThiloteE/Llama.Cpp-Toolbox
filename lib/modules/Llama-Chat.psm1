@@ -13,10 +13,10 @@
 # TODO, llama-cli is not handled yet, should this just be opened in a new PS window?
 
 # Llama-Chat version
-$global:Llama_Chat_Ver = 0.2.0
+$global:Llama_Chat_Ver = 0.2.1
 
 function LlamaChat ($selectedModel, $selectedScript) {
-
+    if ($selectedModel -match ".gguf") {}else{break} # Only process the .gguf models
     # Extract parts from the selected item in the combobox.
     $executable = $selectedScript.Split(' ')[0] # The executable to run.
     $selectedModel # Selected LLM from dropdown list.

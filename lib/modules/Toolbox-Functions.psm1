@@ -70,16 +70,14 @@ function GitIgnore {
 }
 
 # Convert the selected model from source file.
-function ConvertModel {
+function ConvertModel ($selectedModel, $selectedScript) {
 	# Navigate to the directory where llama.cpp resides
 	Set-Location -Path $path
 	# Activate the virtual environment.
 	.\venv\Scripts\activate
-	# Select the model to convert.
-    $selectedModel = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
-    if ($global:ComboBox2.selectedItem -match "bpe"){$option = "--vocab-type bpe"}
+    if ($selectedScript -match "bpe"){$option = "--vocab-type bpe"}
     else{$option=''} # did they burn --outtype? It's still an option but stopped working.
-    $convertScript = ($global:ComboBox2.selectedItem -split ' ', 2)[0].Trim() # Selected script for conversion.
+    $convertScript = ($selectedScript -split ' ', 2)[0].Trim() # Selected script for conversion.
     if (Test-Path $path\Converted\$selectedModel-f16.gguf){$halt = Confirm "Existing file will be overwritten."} # If the file exists then ask to overwrite.
     if (!$halt){
         if($halt -eq 0){Remove-Item $path\Converted\$selectedModel-f16.gguf}
@@ -105,25 +103,22 @@ function ConvertModel {
 }
 
 # Quantize the selected model from f16 or f32.
-function QuantizeModel {
+function QuantizeModel ( $selectedModel, $selectedScript ) {
     # Navigate to the build directory where llama-quantize.exe resides
     Set-Location -Path $path\llama.cpp\build\bin\Release
-
-    # Get selected model from dropdown list 1 ($global:ComboBox_llm)
-    $selectedModel = $global:ComboBox_llm.selectedItem
     
     if ($selectedModel -match ".gguf") {
         # Get the new models name and prepare it to be used with the option later.
-        if ($selectedModel -match "-f16"){$renameModel = ($global:ComboBox_llm.selectedItem -split "-f16", 2)[0].Trim()}
-        if ($selectedModel -match "-f32"){$renameModel = ($global:ComboBox_llm.selectedItem -split "-f32", 2)[0].Trim()}
+        if ($selectedModel -match "-f16"){$renameModel = ($selectedModel -split "-f16", 2)[0].Trim()}
+        if ($selectedModel -match "-f32"){$renameModel = ($selectedModel -split "-f32", 2)[0].Trim()}
         # Extract parts from the selected item in the combobox.
-        $executable = ($global:ComboBox2.selectedItem).Split(' ')[0] # The executable to run.
-        $outtype = ($global:ComboBox2.selectedItem).Split(' ')[1] # The outtype which will also be used in the name.
+        $executable = ($selectedScript).Split(' ')[0] # The executable to run.
+        $outtype = ($selectedScript).Split(' ')[1] # The outtype which will also be used in the name.
         $nthreads = [Environment]::ProcessorCount #$NumberOfCores
         $args = "" # Empty list to be filled with all the args the user wants to apply.
             
         # Get arguments prepared
-        foreach ($arg in (($global:ComboBox2.selectedItem).Split(' '))){
+        foreach ($arg in (($selectedScript).Split(' '))){
             if (($arg -ne $executable)-and($arg -ne $outtype)) {
                 $args += "$arg "
             }
@@ -177,9 +172,7 @@ function ggufDump ($selectedModel, $option, $print) {
 
         # Target directory containing GGUF files
         $ggufDir = "$path\Converted\"
-        #$selectedModel = $global:ComboBox_llm.selectedItem #selectedModel is set where gguf_dump is called. # Selected LLM from dropdown list. 
-        #$option = ($global:ComboBox2.selectedItem -split ' ', 2)[1].Trim() #option is set where gguf_dump is called.
-    
+
         # Build the full path to the GGUF file
         $filePath = Join-Path $ggufDir $selectedModel
 
