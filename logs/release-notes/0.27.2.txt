@@ -1,0 +1,19 @@
+Version 0.27.1
+There are several bug-fixes addressing annoyances and unusual situations.
+
+Bug-fixes in this merge.
+
+- Combobox items
+  - You may use the existing items without re-selecting them.
+  - You may alter arguments directly in the script box to be processed.
+
+- LlamaChat
+  - llama-server will not try to run directories now.
+  - Override the optimizer by providing your context and ngl settings in the args "-c 8192 -ngl 33".
+
+- Reduce $Global:vars
+  - Use parameters instead.
+  - TODO: More of this later where needed.
+
+- New files & directories
+  - Change when and how they are created to resolve errors.
