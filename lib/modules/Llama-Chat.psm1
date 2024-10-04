@@ -13,70 +13,93 @@
 # TODO, llama-cli is not handled yet, should this just be opened in a new PS window?
 
 # Llama-Chat version
-$global:Llama_Chat_Ver = 0.2.1
+# Llama-Chat.psm1
+# Contains chat functionality with separate process management
+$global:Llama_Chat_Ver = 0.2.2
+
+# Add a hashtable to keep track of running processes
+$global:RunningProcesses = @{}
+
+# Function to get chat settings for a specific model
+function Get-ChatsSettings {
+    param([string]$selectedModel)
+    
+    # Define path for chat-settings.json file
+    $settingsFilePath = Join-Path -Path "$path\lib\settings" -ChildPath "chat-settings.json"
+
+    # Check if settings file exists and try to parse content
+    if (Test-Path -Path $settingsFilePath) {
+        try {
+            $jsonData = Get-Content -Path $settingsFilePath -Raw | ConvertFrom-Json
+            
+            Write-Host "Looking for model: $selectedModel" -ForegroundColor Yellow
+            
+            $modelSettings = $jsonData.models | Where-Object { $_.name -eq $selectedModel }
+            
+            if ($modelSettings) {
+                Write-Host "Found matching model settings." -ForegroundColor Green
+                return $modelSettings
+            } else {
+                Write-Host "No settings found for model: $selectedModel" -ForegroundColor Red
+            }
+        } catch {
+            Write-Warning "Failed to parse chat settings: $($_.Exception.Message)"
+        }
+    } else {
+        Write-Warning "Settings file not found at: $settingsFilePath"
+    }
+    return $null
+}
+
+function SaveSettings ($selectedModel,$context,$NGL) {
+    $optimalCTX = $context
+    $optimalNGL = $NGL
+
+    # Define path for chat-settings.json file
+    if (!(Test-Path -Path "$path\lib\settings")) {
+        mkdir "$path\lib\settings" | Out-Null
+    }
+
+    $settingsFile = Join-Path -Path "$path\lib\settings" -ChildPath "chat-settings.json"
+
+    # Load existing settings or create a new array if the file doesn't exist
+    if (Test-Path -Path $settingsFile) {
+        $data = Get-Content -Path $settingsFile -Raw | ConvertFrom-Json
+    } else {
+        $data = @{ models = @() }
+    }
+
+    # Add new model settings to the models array
+    $data.models += @{
+        name = $selectedModel
+        optimal_CTX = $optimalCTX
+        optimal_NGL = $optimalNGL
+    }
+
+    ConvertTo-Json -InputObject $data | Set-Content -Path $settingsFile
+
+    Write-Host "Saved optimal configuration for model $selectedModel to chat-settings.json"
+}
 
 function LlamaChat ($selectedModel, $selectedScript, $ProcessArray) {
-    if ($selectedModel -match ".gguf") {}else{break} # Only process the .gguf models
-    # If there is a process already running send message.
-    if ($ProcessArray -ne $null) {
-        #write-host write-host "First retrieve: $ProcessArray"
-        $halt = Confirm "You are already running a process. `n`nWould you like to stop it before you continue?" # Inform the user this will take a while.
-        if($halt -eq 0){Stop-Process -Name $ProcessArray[1].Name -Force -ErrorAction SilentlyContinue}{}
-    }#else{write-host write-host "First retrieve: $ProcessArray"}
+    if ($selectedModel -match ".gguf") {}else{break}
+    
     $logsPath = "$path\logs\inference"
     if(!(Test-Path $logsPath)){mkdir $logsPath}
-    # Extract parts from the selected item in the combobox.
-    $executable = $selectedScript.Split(' ')[0] # The executable to run.
-    $selectedModel # Selected LLM from dropdown list.
-    $nthreads = [Environment]::ProcessorCount #$NumberOfCores
     
-    $originalArgs = "" # Initialize the var.
-    # First, ensure $args is properly initialized
+    $executable = $selectedScript.Split(' ')[0]
+    $nthreads = $NumberOfCores
+    
+    $originalArgs = ""
     if ($executable -match "llama-server") {
         $port = $selectedScript.Split(' ')[1]
         $originalArgs = "--port $port "
-    } else {
-        $originalArgs = ""
     }
-
-    # Prepare arguments from provided text.
+    
     foreach ($arg in ($selectedScript.Split(' '))) {
         if (($arg -ne $executable) -and ($arg -ne $port)) {
             $originalArgs += "$arg "
         }
-    }
-
-    function Get-ChatsSettings ($selectedModel) {
-        # Define path for chat-settings.json file
-        $settingsFilePath = Join-Path -Path "$path\lib\settings" -ChildPath "chat-settings.json"
-    
-        # Check if settings file exists and try to parse content
-        if (Test-Path -Path $settingsFilePath) {
-            try {
-                $jsonData = Get-Content -Path $settingsFilePath -Raw | ConvertFrom-Json
-            
-                Write-Host "All models in JSON:" -ForegroundColor Cyan
-                $jsonData.models | ForEach-Object {
-                    Write-Host "  Model name: $($_.name)" -ForegroundColor Green
-                }
-            
-                Write-Host "`nLooking for model: $selectedModel" -ForegroundColor Yellow
-            
-                $modelSettings = $jsonData.models | Where-Object { $_.name -eq $selectedModel }
-            
-                if ($modelSettings) {
-                    Write-Host "Found matching model settings!" -ForegroundColor Green
-                    return $modelSettings
-                } else {
-                    Write-Host "No settings found for model: $selectedModel" -ForegroundColor Red
-                }
-            } catch {
-                Write-Warning "Failed to parse chat settings: $($_.Exception.Message)"
-            }
-        } else {
-            Write-Warning "Settings file not found at: $settingsFilePath"
-        }
-        return $null
     }
 
     # Function to safely extract parameter values
@@ -92,217 +115,148 @@ function LlamaChat ($selectedModel, $selectedScript, $ProcessArray) {
         return $null
     }
 
-    $ChatSettings = Get-ChatsSettings $selectedModel
-    $Optimal_CTX = $ChatSettings.Optimal_CTX
-    $Optimal_NGL = $ChatSettings.Optimal_NGL
+    function Start-LlamaServerProcess {
+        param(
+            [string]$modelPath,
+            [string]$llamaExePath,
+            [string]$arguments,
+            [string]$logPath
+        )
 
-    # Extract -c and -ngl values more reliably
+        try {
+            # Create a unique identifier for this process
+            $processId = [guid]::NewGuid().ToString()
+            
+            # Start the process in a new window
+            $process = Start-Process -FilePath $llamaExePath `
+                                    -ArgumentList "-m $modelPath $arguments --log-file $logPath" `
+                                    -PassThru `
+                                    -WindowStyle Normal
+            
+            # Add the process to our tracking hashtable
+            $global:RunningProcesses[$processId] = @{
+                Process = $process
+                Model = $selectedModel
+                Port = $port
+                LogPath = $logPath
+            }
+            
+            # Wait briefly to check if the process started successfully
+            Start-Sleep -Seconds 2
+            if ($process.HasExited) {
+                throw "Process failed to start"
+            }
+            
+            return $processId
+        }
+        catch {
+            Write-Warning "Failed to start process: $_"
+            return $null
+        }
+    }
+
+    function Stop-LlamaProcess {
+        param([string]$processId)
+        
+        if ($global:RunningProcesses.ContainsKey($processId)) {
+            $processInfo = $global:RunningProcesses[$processId]
+            if (!$processInfo.Process.HasExited) {
+                Stop-Process -Id $processInfo.Process.Id -Force
+            }
+            $global:RunningProcesses.Remove($processId)
+            return $true
+        }
+        return $false
+    }
+
+    # Use extracted -c and -ngl values from original args if provided.
     $extractedCTX = Get-ParameterValue -argsString $originalArgs -paramName "-c"
     $extractedNGL = Get-ParameterValue -argsString $originalArgs -paramName "-ngl"
 
-    if ($extractedCTX) { $Optimal_CTX = $extractedCTX }
-    if ($extractedNGL) { $Optimal_NGL = $extractedNGL }
+    if ($extractedCTX) { $contextLength = $extractedCTX }
+    if ($extractedNGL) { $ngl = $extractedNGL }
 
-    # For debugging
-    #Write-Host "Args string: $originalArgs"
-    #Write-Host "Extracted CTX: $extractedCTX"
-    #Write-Host "Extracted NGL: $extractedNGL"
+    # Get chat settings and prepare arguments
+    if(!$extractedCTX -and !$extractedNGL) {$ChatSettings = Get-ChatsSettings $selectedModel}
 
-    if($Optimal_CTX -ne $null){
-        Set-Location -Path $path\logs\inference # Logs will be saved here.
-        $logPath = "$path\logs\inference\$selectedModel.log"
-        $modelPath = "$path\Converted\$selectedModel"
-        $llamaExePath = "$path\llama.cpp\build\bin\Release\$executable"
-        $arguments = "$originalArgs --log-file $logPath -c $Optimal_CTX -ngl $Optimal_NGL -t $nthreads" # Set the dynamic args.
-        $command = "$llamaExePath -m $modelPath $arguments" # Write the command to run.
-        $TextBox2.Text = "Set-Location -Path $path\logs; $command" # Provide the command for the user to review.
-
-        function Start-LlamaServer {
-            param(
-                [string]$modelPath,
-                [string]$llamaExePath,
-                [string]$arguments,
-                [int]$contextLength,
-                [int]$ngl,
-                [int]$nthreads,
-                [string]$logPath
-            )
-
-            $serverArgs = "-m $modelPath $arguments --log-file $logPath -c $contextLength -ngl $ngl -t $nthreads"
-            #write-host $llamaExePath $serverArgs
-            try {
-                "" | Out-File -FilePath $logPath -Force
-                $process = Start-Process -FilePath $llamaExePath -ArgumentList $serverArgs -PassThru -NoNewWindow
-        
-                $timeout = 30
-                $startTime = Get-Date
-        
-                while (!$process.HasExited -and ((Get-Date) - $startTime).TotalSeconds -lt $timeout) {
-                    Start-Sleep -Milliseconds 500
-            
-                    try {
-                        $logContent = Get-Content -Path $logPath -Raw
-                        if ($logContent -match "main: model loaded") {
-                            Write-Host "Server started successfully"
-                            return $process
-                            #write-host write-host "First return process: $process"
-                        }
-                        if ($logContent -match "Error|OutOfDeviceMemory") {
-                            throw "Server failed to start: Memory or other error detected"
-                        }
-                    }
-                    catch {
-                        Write-Host "Warning: Could not read log file. Continuing to monitor process."
-                    }
-                }
-        
-                throw "Server startup timed out or failed"
-            }
-            catch {
-                if ($process -and !$process.HasExited) {
-                    Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
-                }
-                throw
-            }
-        }
-
-        #$ChatSettings = Get-ChatsSettings $selectedModel
-        try {
-            $process = Start-LlamaServer `
-                -modelPath "$path\Converted\$selectedModel" `
-                -llamaExePath "$path\llama.cpp\build\bin\Release\$executable" `
-                -arguments $arguments `
-                -contextLength $ChatSettings.Optimal_CTX `
-                -ngl $ChatSettings.Optimal_NGL `
-                -nthreads $nthreads `
-                -logPath "$path\logs\inference\$selectedModel.log"
-    
-            $label3.Text = "$selectedModel Server started successfully."
-            $returnValue = $process
-            #write-host write-host "Seccond return process: $process"
-        }
-        catch {
-            $label3.Text = "Loading failed..."
-            $TextBox2.Text = $_.Exception.Message
-            Write-Host $_.Exception.Message
-        }
-
-    }
-    else {
+    if ($ChatSettings) {
+        $contextLength = $ChatSettings.Optimal_CTX
+        $ngl = $ChatSettings.Optimal_NGL
+    } else {
         $option = "metadata" # Request all metadata.
         $print = 0 # Do not print.
         $value = ggufDump $selectedModel $option $print # Set the option needed to retrieve all metadata then retrieve the following values.
         $global:cfg = "minCtx"; $cfgCTX = RetrieveConfig $global:cfg # get-set the flag for $cfgCTX then retrieve it's value.
         $minCtx = [int]$cfgCTX # The users prefered minimum usable context value.
         
-        # Retrieve maximum context length
-        if($value -match "context"){$matchingKey = ($value | Get-Member -Name *"context_length").Name | Where-Object { $_ -like "*context_length*" } | Select-Object -First 1
-            if ($value | Get-Member -Name $matchingKey){
-                if ($value.$matchingKey.value){
-                    $maxContext = $value.$matchingKey.value
+        if (!$contextLength -or !$ngl) {
+            # Retrieve maximum context length
+            if($value -match "context"){$matchingKey = ($value | Get-Member -Name *"context_length").Name | Where-Object { $_ -like "*context_length*" } | Select-Object -First 1
+                if ($value | Get-Member -Name $matchingKey){
+                    if ($value.$matchingKey.value){
+                        $maxCtx = $value.$matchingKey.value
+                    }
                 }
             }
+            # Retrieve max number of Gpu Layers "ngl"
+            if($value -match "block_count"){$matchingKey = ($value | Get-Member -Name *"block_count").Name | Where-Object { $_ -like "*block_count*" } | Select-Object -First 1
+                if ($value | Get-Member -Name $matchingKey){
+                    if ($value.$matchingKey.value){
+                        $maxNGL = $value.$matchingKey.value + 1
+                    }
+                }
+            }
+
+            # Determine optimal settings
+            $TestArgs = Get-OptimumArgs $executable $selectedModel $minCtx $maxCtx $maxNGL
+            $contextLength = $TestArgs.Split(',')[0]
+            $ngl = $TestArgs.Split(',')[1]
         }
-        # Retrieve max number of Gpu Layers "ngl"
-        if($value -match "block_count"){$matchingKey = ($value | Get-Member -Name *"block_count").Name | Where-Object { $_ -like "*block_count*" } | Select-Object -First 1
-            if ($value | Get-Member -Name $matchingKey){
-                if ($value.$matchingKey.value){
-                    $maxNGL = $value.$matchingKey.value + 1
-                }
-            }
-        }
-
-        while (!$runningProcesses -and $NGL -ne 0 ){
-            $optimumArgs = Get-OptimumArgs $executable $selectedModel $minCtx $maxContext $maxNGL
-            #write-host $optimumArgs
-            $context = $optimumArgs.Split(',')[0]
-            $NGL = $optimumArgs.Split(',')[1]
-            Set-Location -Path $path\logs\inference # Logs will be saved here.
-            $logPath = "$path\logs\inference\$selectedModel.log"
-            $modelPath = "$path\Converted\$selectedModel"
-            $llamaExePath = "$path\llama.cpp\build\bin\Release\$executable"
-
-            function StopProcess{
-                # Check if the process is still running.
-                $runningProcesses = Get-Process | Where-Object { $_.Name -like "*$executable*" }
-                $processName = $executable
-
-                # Check if the process exists.
-                if ($runningProcesses | Where-Object { $_.ProcessName -eq $processName }) {
-                    # Stop old process if it's still running.
-                    Get-Process | Where-Object {$_.Name -like "*$executable*"} | Stop-Process 
-                    Start-Sleep -Seconds 5
-                }
-            }
-
-            #cls # Clear the screen
-            $arguments = "$originalArgs --log-file $logPath -c $context -ngl $NGL -t $nthreads" # Set the dynamic args.
-            $command = "$llamaExePath -m $modelPath $arguments" # Write the command to run.
-            $TextBox2.Text = "Set-Location -Path $path\logs; $command" # Provide the command for the user to review.
-            try {$job = Start-Job -ScriptBlock { Invoke-Expression $args[0] } -ArgumentList $command # Try the command.
-                    $jobId = $job.Id
-                    Wait-Job -Job $job -Timeout 20 -ErrorAction SilentlyContinue
-            }
-            catch [Exception] {$label3.Text = "Loading failed..." ; $TextBox2.Text = $_.Exception.Message
-                if ($_.Exception.Message){Write-Host $_.Exception.Message}
-            }
-
-            function SaveSettings ($selectedModel,$context,$NGL) {
-                $optimalCTX = $context
-                $optimalNGL = $NGL
-
-                # Define path for chat-settings.json file
-                if (!(Test-Path -Path "$path\lib\settings")) {
-                    mkdir "$path\lib\settings" | Out-Null
-                }
-
-                $settingsFile = Join-Path -Path "$path\lib\settings" -ChildPath "chat-settings.json"
-
-                # Load existing settings or create a new array if the file doesn't exist
-                if (Test-Path -Path $settingsFile) {
-                    $data = Get-Content -Path $settingsFile -Raw | ConvertFrom-Json
-                } else {
-                    $data = @{ models = @() }
-                }
-
-                # Add new model settings to the models array
-                $data.models += @{
-                    name = $selectedModel
-                    optimal_CTX = $optimalCTX
-                    optimal_NGL = $optimalNGL
-                }
-
-                ConvertTo-Json -InputObject $data | Set-Content -Path $settingsFile
-
-                Write-Host "Saved optimal configuration for model $selectedModel to chat-settings.json"
-            }
-
-            # Check if the process is still running.
-            $runningProcesses = Get-Process | Where-Object { $_.Name -like "*$executable*" }
-            $processName = $executable
-
-            # If the process exists show the UI, otherwise try again.
-            if ($runningProcesses | Where-Object { $_.ProcessName -eq $processName }) {
-                $label3.Text = "$selectedModel Loaded."
-                Start-Process "http://localhost:$port"
-                Write-Host "The process '$processName' is running."
-            } else {
-                $NGL = $NGL - 1
-                Write-Host "The process '$processName' is not running."
-            }
-
-            # If the model can be used 
-            if($NGL -eq 0){$label3.Text = "$selectedModel failed to load."
-            Write-Warning "This model could not be loaded."
-            break
-            }
-            else{ SaveSettings $selectedModel $context $NGL
-                $returnValue = $process
-                #write-host write-host "Third return process: $process"
-            break}
-        }
+        SaveSettings $selectedModel $contextLength $ngl
     }
-    #write-host "Last return: $returnValue"
-return $returnValue
+
+    # Start the process
+    $processId = Start-LlamaServerProcess `
+        -modelPath "$path\Converted\$selectedModel" `
+        -llamaExePath "$path\llama.cpp\build\bin\Release\$executable" `
+        -arguments "$originalArgs -c $contextLength -ngl $ngl -t $nthreads" `
+        -logPath "$path\logs\inference\$selectedModel.log"
+
+    if ($processId) {
+        $label3.Text = "$selectedModel started successfully."
+        $TextBox2.Text = "$executable $originalArgs -c $contextLength -ngl $ngl -t $nthreads --log-file $path\logs\inference\$selectedModel.log"
+        if ($port) {
+            Start-Process "http://localhost:$port"
+        }
+        return $processId
+    } else {
+        $label3.Text = "$selectedModel failed to start."
+        return $null
+    }
 }
-Export-ModuleMember -Function * -Variable * -Alias *
+
+# Function to list all running processes
+function Get-RunningLlamaProcesses {
+    return $global:RunningProcesses
+}
+
+# Function to stop a specific process
+function Stop-SpecificLlamaProcess {
+    param([string]$processId)
+    return Stop-LlamaProcess -processId $processId
+}
+
+# Function to stop all running processes
+function Stop-AllLlamaProcesses {
+    $processIds = @($global:RunningProcesses.Keys)
+    foreach ($processId in $processIds) {
+        Stop-LlamaProcess -processId $processId
+    }
+}
+
+# Make sure to clean up processes when the module is removed
+$MyInvocation.MyCommand.ScriptBlock.Module.OnRemove = {
+    Stop-AllLlamaProcesses
+}
+
+Export-ModuleMember -Function LlamaChat, Get-RunningLlamaProcesses, Stop-SpecificLlamaProcess, Stop-AllLlamaProcesses, Get-ChatsSettings -Variable *

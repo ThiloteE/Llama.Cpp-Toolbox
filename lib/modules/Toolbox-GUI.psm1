@@ -91,7 +91,7 @@ $Button1.Add_Click({
             If ($selectedScript -eq $null) {$Label3.Text = "Select a script to process the LLM."}
             ElseIf ($selectedScript -match "quantize") {QuantizeModel $selectedDirectory $selectedScript}
             ElseIf ($selectedScript -match "convert") {ConvertModel $selectedDirectory $selectedScript}
-            ElseIf (($selectedScript -match "server") -or ($selectedScript -match "cli")) { $returnedProcess = LlamaChat $selectedDirectory $selectedScript $global:HoldingProcess ; $global:HoldingProcess += $returnedProcess } #write-host "HoldingProcess array: $global:HoldingProcess"}
+            ElseIf (($selectedScript -match "server") -or ($selectedScript -match "cli")) { $returnedProcess = LlamaChat $selectedDirectory $selectedScript $global:HoldingProcess ; $global:HoldingProcess += $returnedProcess ; Show-ProcessManagerDialog} #write-host "HoldingProcess array: $global:HoldingProcess"}
             ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $global:ComboBox_llm.Text;$option = ($global:ComboBox2.Text -split ' ', 2)[1].Trim();$print=1;ggufDump $selectedModel $option $print}
             ElseIf ($selectedScript -match "symlink") {SymlinkModel}
             else {$Label3.Text = "The script entered:$selectedScript was not handled."}
