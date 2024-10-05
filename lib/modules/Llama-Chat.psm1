@@ -1,6 +1,5 @@
 ﻿# Llama-Chat.psm1
 # Contains chat functionality.
-# TODO count 1
 
 # To chat with the chosen LLM.
 # You may use use llama-server or llama-cli.
@@ -10,12 +9,10 @@
 # The value for maximum context is retrieved from the model, your config setting for minimum context will be used when trying to find an optimum value for NGL and Context.
 # Config.txt: For llama-server, choose your port then place args after the port "llama-server 8080 your_args"
 # Config.txt: For llama-cli, place args after the script name "llama-cli your_args"
-# TODO, llama-cli is not handled yet, should this just be opened in a new PS window?
 
 # Llama-Chat version
-# Llama-Chat.psm1
 # Contains chat functionality with separate process management
-$global:Llama_Chat_Ver = 0.2.2
+$global:Llama_Chat_Ver = 0.2.3
 
 # Add a hashtable to keep track of running processes
 $global:RunningProcesses = @{}

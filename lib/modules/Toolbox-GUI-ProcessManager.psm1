@@ -1,4 +1,7 @@
-﻿# Add required assemblies for WinForms
+﻿# ProcessManager PM_version
+$global:PM_version = "0.1.0"
+
+# Add required assemblies for WinForms
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
