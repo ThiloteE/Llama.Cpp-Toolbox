@@ -16,28 +16,34 @@ $main_form.MinimumSize = New-Object System.Drawing.Size(750, 300)
 $main_form.MaximumSize = New-Object System.Drawing.Size(750, 1000)
 
 $menuStrip1 = New-object system.windows.forms.menustrip
-$fileMenu = New-Object System.Windows.Forms.ToolStripMenuItem
-$fileMenu.Text = "File"
-$fileMenu.ShortcutKeyDisplayString="Ctrl+F"
+$mainMenu = New-Object System.Windows.Forms.ToolStripMenuItem
+$mainMenu.Text = "Main Menu"
+$mainMenu.ShortcutKeyDisplayString="Ctrl+m"
 
 $configItem = New-Object System.Windows.Forms.ToolStripMenuItem
 $configItem.Text = "Config"
+$configItem.ShortcutKeyDisplayString="Ctrl+c"
 $configItem.Add_Click({ConfigForm})
+
+$processManager = New-Object System.Windows.Forms.ToolStripMenuItem
+$processManager.Text = "Process Manager"
+$processManager.ShortcutKeyDisplayString="Ctrl+p"
+$processManager.Add_Click({Show-ProcessManagerDialog})
 
 $updaterLlama  = New-Object System.Windows.Forms.ToolStripMenuItem
 $updaterLlama.Text = "Update Llama.cpp"
 $updaterLlama.ShortcutKeyDisplayString="Ctrl+l"
 $updaterLlama.Add_Click({ConfirmUpdate "UpdateLlama" "Updating Llama.cpp`n`nYou must set a branch in the Toolbox-Config to rebuild.`n`n Are you sure you want to proceed?" }) # Updates llama.cpp only.
 
-
 $updaterGui = New-Object System.Windows.Forms.ToolStripMenuItem
 $updaterGui.Text = "Update Toolbox"
-$updaterGui.ShortcutKeyDisplayString="Ctrl+g"
+$updaterGui.ShortcutKeyDisplayString="Ctrl+t"
 $updaterGui.Add_Click({ConfirmUpdate "UpdateToolbox" "Updating the Llama.cpp-Toolbox GUI.`n`nThe program will restart after updating.`n`n Are you sure you want to proceed?"}) # Updates the Toolbox only.
 
-$menuStrip1.Items.Add($fileMenu)
+$menuStrip1.Items.Add($mainMenu)
 $menuStrip1.Items.Add($configItem)
-$fileMenu.DropDownItems.AddRange(@($configItem,$updaterLlama,$updaterGui))
+$menuStrip1.Items.Add($processManager)
+$mainMenu.DropDownItems.AddRange(@($configItem,$processManager,$updaterLlama,$updaterGui))
 
 $helpMenu = New-Object System.Windows.Forms.ToolStripMenuItem
 $helpMenu.Text   = "Help"
@@ -91,7 +97,7 @@ $Button1.Add_Click({
             If ($selectedScript -eq $null) {$Label3.Text = "Select a script to process the LLM."}
             ElseIf ($selectedScript -match "quantize") {QuantizeModel $selectedDirectory $selectedScript}
             ElseIf ($selectedScript -match "convert") {ConvertModel $selectedDirectory $selectedScript}
-            ElseIf (($selectedScript -match "server") -or ($selectedScript -match "cli")) { $returnedProcess = LlamaChat $selectedDirectory $selectedScript $global:HoldingProcess ; $global:HoldingProcess += $returnedProcess ; Show-ProcessManagerDialog} #write-host "HoldingProcess array: $global:HoldingProcess"}
+            ElseIf (($selectedScript -match "server") -or ($selectedScript -match "cli")) { $returnedProcess = LlamaChat $selectedDirectory $selectedScript $global:HoldingProcess ; $global:HoldingProcess += $returnedProcess } #write-host "HoldingProcess array: $global:HoldingProcess"}
             ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $global:ComboBox_llm.Text;$option = ($global:ComboBox2.Text -split ' ', 2)[1].Trim();$print=1;ggufDump $selectedModel $option $print}
             ElseIf ($selectedScript -match "symlink") {SymlinkModel}
             else {$Label3.Text = "The script entered:$selectedScript was not handled."}

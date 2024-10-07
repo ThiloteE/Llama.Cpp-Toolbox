@@ -99,6 +99,8 @@ function LlamaChat ($selectedModel, $selectedScript, $ProcessArray) {
         }
     }
 
+    $originalArgs = $originalArgs.Trim()
+
     # Function to safely extract parameter values
     function Get-ParameterValue {
         param(
@@ -112,7 +114,7 @@ function LlamaChat ($selectedModel, $selectedScript, $ProcessArray) {
         return $null
     }
 
-    function Start-LlamaServerProcess {
+    function Start-LlamaChatProcess {
         param(
             [string]$modelPath,
             [string]$llamaExePath,
@@ -129,22 +131,25 @@ function LlamaChat ($selectedModel, $selectedScript, $ProcessArray) {
                                     -ArgumentList "-m $modelPath $arguments --log-file $logPath" `
                                     -PassThru `
                                     -WindowStyle Normal
-            
-            # Add the process to our tracking hashtable
-            $global:RunningProcesses[$processId] = @{
-                Process = $process
-                Model = $selectedModel
-                Port = $port
-                LogPath = $logPath
-            }
-            
+                  
             # Wait briefly to check if the process started successfully
-            Start-Sleep -Seconds 2
+            Start-Sleep -Seconds 3
             if ($process.HasExited) {
-                throw "Process failed to start"
+                if ($process.ExitCode -ne 0) {
+                    Write-Warning "Process exited with error: "$process.ExitCode
+                }
+                throw $process.StandardError
             }
-            
+            else {
+                # Add the process to our tracking hashtable
+                $global:RunningProcesses[$processId] = @{
+                    Process = $process
+                    Model = $selectedModel
+                    Port = $port
+                    LogPath = $logPath
+                }
             return $processId
+            }
         }
         catch {
             Write-Warning "Failed to start process: $_"
@@ -205,20 +210,20 @@ function LlamaChat ($selectedModel, $selectedScript, $ProcessArray) {
             }
 
             # Determine optimal settings
-            $TestArgs = Get-OptimumArgs $executable $selectedModel $minCtx $maxCtx $maxNGL
+            $TestArgs = Get-OptimumArgs "llama-server" $selectedModel $minCtx $maxCtx $maxNGL
             $contextLength = $TestArgs.Split(',')[0]
             $ngl = $TestArgs.Split(',')[1]
+            SaveSettings $selectedModel $contextLength $ngl
         }
-        SaveSettings $selectedModel $contextLength $ngl
     }
 
     # Start the process
-    $processId = Start-LlamaServerProcess `
+    $processId = Start-LlamaChatProcess `
         -modelPath "$path\Converted\$selectedModel" `
         -llamaExePath "$path\llama.cpp\build\bin\Release\$executable" `
         -arguments "$originalArgs -c $contextLength -ngl $ngl -t $nthreads" `
         -logPath "$path\logs\inference\$selectedModel.log"
-
+    
     if ($processId) {
         $label3.Text = "$selectedModel started successfully."
         $TextBox2.Text = "$executable $originalArgs -c $contextLength -ngl $ngl -t $nthreads --log-file $path\logs\inference\$selectedModel.log"
@@ -228,6 +233,7 @@ function LlamaChat ($selectedModel, $selectedScript, $ProcessArray) {
         return $processId
     } else {
         $label3.Text = "$selectedModel failed to start."
+        $TextBox2.Text = "$executable $originalArgs -c $contextLength -ngl $ngl -t $nthreads --log-file $path\logs\inference\$selectedModel.log"
         return $null
     }
 }

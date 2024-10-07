@@ -1,14 +1,44 @@
 # Optimizer version
 $global:Optimizer_Ver = 0.1.1
 
+function TestPort{
+    $startPort = 10000
+    $endPort = 20000
+
+    #Write-Host "Searching for available port between $StartPort and $EndPort..."
+    
+    for ($Tport = $StartPort; $Tport -le $EndPort; $Tport++) {
+        $tcpListener = $null
+        try {
+            $tcpListener = New-Object System.Net.Sockets.TcpListener([System.Net.IPAddress]::Loopback, $port)
+            $tcpListener.Start()
+            
+            # If we get here, the port is available
+            return $Tport
+        }
+        catch {
+            # Port is in use, continue to next port
+            continue
+        }
+        finally {
+            if ($tcpListener -ne $null) {
+                $tcpListener.Stop()
+            }
+        }
+    }
+    
+    throw "No available ports found between $StartPort and $EndPort"
+}
+
 function Get-OptimumArgs ($executable, $selectedModel, $minCtx, $maxCtx, $maxNGL) {
+    $testPort = TestPort
     $modelPath = "$path\Converted\$selectedModel"
     $logsPath = "$path\logs\inference"
     $serverExePath = "$path\llama.cpp\build\bin\Release\$executable"
 
     # Function to run the server and monitor its output
     function Test-Configuration ($contextLength, $ngl) {
-        $serverArgs = "-m $modelPath -ngl $ngl -t 16 --port 8080 -c $contextLength"
+        $serverArgs = "-m $modelPath -ngl $ngl -t 16 --port $testPort -c $contextLength"
         $logFile = "$logsPath\llama-server.log"
     
         try {

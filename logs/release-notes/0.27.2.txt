@@ -1,15 +1,19 @@
 Version 0.27.2
+Improvements in this merge:
+Optimization now detects and chooses an unused port for testing with the server.
 Enable multiple processes for llama-server and llama-cli.
 
-Features in this merge.
+Features:
 
 - Process Manager
   - Manage processes, stop specific running models or all running models.
+  - The "Process Manager" button is in the "Main Menu".
 
 - LlamaChat
-  - llama-cli will function as expected now.
+  - llama-cli has been included in the Tasks List.
+  - llama-cli requires a system prompt.
 
-- Todo
-  - Place the "Process Manager" button in an accessible place.
-  - Remove it from the startup of the chats.
-  - Ensure settings get-set for llama-cli also.
+Bug-fix:
+
+- Release Notes
+  - Presentation of release notes should work for all systems now.

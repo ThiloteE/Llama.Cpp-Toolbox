@@ -18,11 +18,11 @@ function VersionCheck {
     # Read the content of each file and add it to the array
     foreach ($file in $releaseNotes) {
         $content = Get-Content $file.FullName -Raw
-        $allContent += ">>> Release Notes: $content`r`n`r`n`r`n"
+        $allContent += (">>> Release Notes: $content",[System.Environment]::NewLine,[System.Environment]::NewLine)
     }
 
     # Join all content and set it to $TextBox2.Text
-    $TextBox2.Text = $allContent -join "`r`n"
+    $TextBox2.Text = $allContent -join [System.Environment]::NewLine #"`r`n"
     $global:cfgValue = $version ; EditConfig $global:cfg # Update config with new value.
     # Get the version of the config text, if it matches the file we can skip this update.
     $global:cfg = "Config-Version"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for version.

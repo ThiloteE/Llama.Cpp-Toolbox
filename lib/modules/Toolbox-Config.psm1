@@ -19,7 +19,7 @@ symlinkdir¦$path\Symlinks
 minCtx¦4096
 show¦symlink
 show¦model-list
-show¦llama-cli -cnv
+show¦llama-cli -cnv --prompt `"Your system prompt.`"
 show¦llama-server 8080
 show¦convert_hf_to_gguf.py
 show¦convert_gptj_to_gguf.py
