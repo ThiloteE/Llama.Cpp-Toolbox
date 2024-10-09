@@ -7,8 +7,8 @@
 # The option for number of threads is retrieved from the PC then inserted after all args.
 # The value for number of GPU layers is retrieved from the model, if the model fails to load it will try to offload layers to CPU until it runs using your setting for minimum context.
 # The value for maximum context is retrieved from the model, your config setting for minimum context will be used when trying to find an optimum value for NGL and Context.
-# Config.txt: For llama-server, choose your port then place args after the port "llama-server 8080 your_args"
-# Config.txt: For llama-cli, place args after the script name "llama-cli your_args"
+# For llama-server, choose your port then place args after the port "llama-server 8080 your_args"
+# For llama-cli, place args after the script name "llama-cli your_args"
 
 # Llama-Chat version
 # Contains chat functionality with separate process management
@@ -188,7 +188,7 @@ function LlamaChat ($selectedModel, $selectedScript, $ProcessArray) {
         $option = "metadata" # Request all metadata.
         $print = 0 # Do not print.
         $value = ggufDump $selectedModel $option $print # Set the option needed to retrieve all metadata then retrieve the following values.
-        $global:cfg = "minCtx"; $cfgCTX = RetrieveConfig $global:cfg # get-set the flag for $cfgCTX then retrieve it's value.
+        $cfgCTX = Get-ConfigValue -Key "minCtx" # get the value for $cfgCTX.
         $minCtx = [int]$cfgCTX # The users prefered minimum usable context value.
         
         if (!$contextLength -or !$ngl) {

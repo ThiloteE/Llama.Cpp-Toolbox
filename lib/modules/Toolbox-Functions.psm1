@@ -2,13 +2,13 @@
 # Contains the functions.
 
 # Toolbox-Functions version
-$global:version_func = "0.1.2"
+$global:version_func = "0.1.3"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck {
-    $global:cfg = "rebuild"; $global:rebuild = RetrieveConfig $global:cfg # get-set the flag for $rebuild.
-    $global:cfg = "Llama.Cpp-Toolbox"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for old Toolbox version.
-    if ($version -ne $global:cfgVersion){
+    $global:rebuild = Get-ConfigValue -Key "rebuild" # get the value for $rebuild.
+    $cfgVersion = Get-ConfigValue -Key "Llama.Cpp-Toolbox" # get the value of last used Toolbox version.
+    if ($version -ne $cfgVersion){
     # Get all release notes files
     $releaseNotes = Get-ChildItem "$path\logs\release-notes\*.txt" | Sort-Object Name -Descending
 
@@ -17,19 +17,19 @@ function VersionCheck {
 
     # Read the content of each file and add it to the array
     foreach ($file in $releaseNotes) {
-        $content = Get-Content $file.FullName -Raw
+        $content = Get-Content $file.FullName -Raw -Encoding UTF8
         $allContent += (">>> Release Notes: $content",[System.Environment]::NewLine,[System.Environment]::NewLine)
     }
 
     # Join all content and set it to $TextBox2.Text
-    $TextBox2.Text = $allContent -join [System.Environment]::NewLine #"`r`n"
-    $global:cfgValue = $version ; EditConfig $global:cfg # Update config with new value.
+    $TextBox2.Text = $allContent -join [System.Environment]::NewLine
+    Set-ConfigValue -Key "Llama.Cpp-Toolbox" -Value $version # set the new toolbox version.
     # Get the version of the config text, if it matches the file we can skip this update.
-    $global:cfg = "Config-Version"; $global:cfgVersion = RetrieveConfig $global:cfg # get-set the flag for version.
+    $cfgVersion = Get-ConfigValue -Key "Config-Version" # get the config-version.
     if ($cfgVersion -ne $version_cfg){
-        $global:cfgValue = $version_cfg ; EditConfig $global:cfg # Update config with new value.
-        UpgradeConfig
-        } # Update the config with new functionality as needed.
+        Set-ConfigValue -Key "Config-Version" -Value $version_cfg # set the new config-version.
+        Update-Config # Update the config with new functionality as needed.
+        }
     }
 }
 
@@ -49,8 +49,10 @@ function ListModels {
 # Get list of scripts from config.
 function ListScripts {
     $global:ComboBox2.Items.Clear()
-    Get-Content -Path "$path\config.txt" | Where-Object {$_.TrimStart().StartsWith("show¦")} | ForEach-Object {
-        $global:ComboBox2.Items.Add($_.Split('¦')[1].Trim())
+    # Get all visible commands (for GUI display)
+    $scripts = Get-CommandValues -Visibility "show"
+    foreach ($script in $scripts){
+        $global:ComboBox2.Items.Add($script)
     }
 }
 
@@ -222,7 +224,7 @@ function UpdateToolbox {
 # Update Llama.cpp if repo is changed or if updates found in repo.
 function UpdateLlama {
     # The user needs to select a branch to build, thats when the flag is set true.
-    $global:cfgValue = "False"; $global:cfg = "rebuild"; EditConfig $global:cfg # get-set the flag for $rebuild.
+    Set-ConfigValue -Key "rebuild" -Value "False" # set the value for $rebuild.
     cd $path\llama.cpp
     git checkout master
     $fetch = Invoke-Expression "git fetch" # Check for any updates using Git.
@@ -237,7 +239,7 @@ function UpdateLlama {
         $label3.Text = "Update completed, set a new branch to build."
         }
     Else {$label3.Text = "No changes to llama.cpp detected."}
-    $global:cfg = "branch" ; $branch = RetrieveConfig $global:cfg # get-set the flag for $branch.
+    $branch = Get-ConfigValue -Key "branch" # get the value for $branch.
     git checkout $branch # Return to expected branch.
 }
 
@@ -273,9 +275,8 @@ function InstallLlama {
 function BuildLlama {
     if (Test-Path $path\logs\build){}else{mkdir $path\logs\build} #if the logs dir does not exist make it.
     $label3.Text = "The build flag clears after a rebuild is complete. Building..."
-    $global:cfg = "build"
-    $build = RetrieveConfig $global:cfg # get-set the flag for $build.
-        
+    $build = Get-ConfigValue -Key "build" # get the value for $build.
+
     $buildFlag = switch ($build) {
         'vulkan' { "-DGGML_VULKAN=ON" }
         'cuda'   { "-DGGML_CUDA=ON" }
@@ -305,9 +306,7 @@ function BuildLlama {
     if ($process.ExitCode -eq 0){
     Write-Host -ForegroundColor Green "CMake build completed successfully."
 
-    $global:cfgValue = "False"
-    $global:cfg = "rebuild"
-    EditConfig $global:cfg # get-set the flag for $rebuild.
+    Set-ConfigValue -Key "rebuild" -Value "False" # set the value for $rebuild.
     SetButton
     $label3.Text = "Build completed successfully."
     $TextBox2.Text = ""
@@ -335,7 +334,7 @@ function Update-Log ($gitstatus,$log_name){
 
 # Change the branch to use, $branch is set when changed in ConfigForm.
 function Set-GitBranch ($branch) {
-    $global:cfg = "branch" ; $global:cfgValue = $branch.Trim(); EditConfig $global:cfg # Update config with new value.
+    Set-ConfigValue -Key "branch" -Value $branch.Trim() # set the value for $branch.
     git submodule deinit -f --all
     git checkout $branch # Change branch using Git.
     git reset --hard $branch # Remove changes from other repo/branch.
@@ -347,7 +346,7 @@ function Set-GitBranch ($branch) {
 # Change the repo to use, $repo is set when changed in ConfigForm.
 function Set-GitRepo ($repo) {
     cd $path\llama.cpp
-    $global:cfg = "repo" ; $global:cfgValue = $repo.Trim(); EditConfig $global:cfg # Update config with new value.
+    Set-ConfigValue -Key "repo" -Value $repo.Trim() #  # set the value for $repo.
     git remote set-url origin https://github.com/$repo # Change repo using Git.
     $fetch = Invoke-Expression "git fetch" # Check for any changes using Git.
     git submodule deinit -f --all
@@ -372,7 +371,7 @@ function Get-NewRelease{
 function SymlinkModel {
     $selectedModel = $global:ComboBox_llm.selectedItem # Selected LLM from dropdown list.
     if ($selectedModel -match ".gguf"){
-        $global:cfg = "symlinkdir"; $symlinkdir = RetrieveConfig $global:cfg # get-set the flag for $symlinkdir.
+        $symlinkdir = Get-ConfigValue -Key "symlinkdir" # get the value for $symlinkdir.
         $halt = Confirm "Admin permission required to create symlink in... $symlinkdir`n`nContinue?" # If the file exists then ask to overwrite.
         if($halt -eq 0){
             if(test-path $symlinkdir){}else{$halt = Confirm "Create symlink directory in... $symlinkdir`n`nContinue?" ; if($halt -eq 0){mkdir $symlinkdir}}

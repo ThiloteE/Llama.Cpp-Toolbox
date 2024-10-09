@@ -3,7 +3,7 @@
 # This also acts as the toolbox environment setup script.
 
 # Llama.cpp-Toolbox version
-$global:version = "0.27.2"
+$global:version = "0.27.3"
 
 #$global:debug = $true
 
@@ -32,7 +32,7 @@ Import-Module $path\lib\modules\Toolbox-GUI-ProcessManager.psm1
 
 # Check for prerequisites and install as needed on first run or when CFG is not detected.
 function PreReqs {
-    if($isInstalled -eq "True"){CfgBuild}
+    if($isInstalled -eq "True"){Update-Config ; Main}
     else{
     if (python --version){$python = 1; Write-Host "(*) python is on path"}else{$python = 0; Write-Host "( ) python isn't ready"}
     if (pyenv){$pyenv = 1; Write-Host "(*) pyenv is ready"}else{$pyenv = 0; Write-Host "( ) pyenv isn't ready"}
@@ -61,7 +61,7 @@ function InstallToolbox {
 
 # Determine if the program should be run or installed.
 function Main {
-    if (Test-Path "$path\config.txt") { # If installed and config.txt exists run the program.
+    if (Test-Path "$path\lib\settings\config.json") { # If installed and config.txt exists run the program.
         VersionCheck # Edit the config if the program is updated.
         SetButton # Check for rebuild flag.
         GitIgnore # Rebuild the list each init, if something is tracked it will not be ignored.
