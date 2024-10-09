@@ -69,6 +69,7 @@ $main_form.Controls.Add($Label)
 $Global:ComboBox_llm = New-Object System.Windows.Forms.ComboBox
 $global:ComboBox_llm.Width = 300
 $global:ComboBox_llm.Location  = New-Object System.Drawing.Point(160,30)
+$global:ComboBox_llm.DropDownHeight = 200  # Show more of the content in the drop down list.
 $main_form.Controls.Add($global:ComboBox_llm)
 
 # Dropdown list containing scripts to process using the selected LLM.
@@ -76,6 +77,7 @@ $Global:ComboBox2 = New-Object System.Windows.Forms.ComboBox
 $global:ComboBox2.Width = 150
 $global:ComboBox2.Location  = New-Object System.Drawing.Point(465,30)
 $global:ComboBox2.DropDownWidth = 255  # Show more of the content in the drop down list.
+$global:ComboBox2.DropDownHeight = 200  # Show more of the content in the drop down list.
 $main_form.Controls.Add($global:ComboBox2)
 
 # Button to process a script.
@@ -124,8 +126,7 @@ function SetButton {
     # Check if the button already exists
     $existingButton = $main_form.Controls["BUL_Button"]
 
-    $global:cfg = "rebuild"
-    $global:rebuild = RetrieveConfig $global:cfg # get-set the flag for $rebuild.
+    $global:rebuild = Get-ConfigValue -Key "rebuild" # get the value for $rebuild.
 
     $buttonClickAction = {
         if($global:rebuild -eq "True" -and $global:firstRun -eq "True" ){
@@ -278,8 +279,8 @@ function AboutForm {
     $label_about_version.Location = New-Object System.Drawing.Point(115, 9)
     $label_about_version.AutoSize = $true
 
-    $global:cfg = "repo"; $cfgRepo = RetrieveConfig $global:cfg # get-set the flag for repo.
-    $global:cfg = "branch"; $cfgbranch = RetrieveConfig $global:cfg # get-set the flag for branch.
+    $cfgRepo = Get-ConfigValue -Key "repo" # get-set the flag for repo.
+    $cfgbranch = Get-ConfigValue -Key "branch" # get-set the flag for branch.
     $label_about_repo = New-Object System.Windows.Forms.label
     $label_about_repo.Text = "Repo: https://github.com/$cfgRepo $cfgbranch"
     $label_about_repo.Location = New-Object System.Drawing.Point(10, 30)
@@ -326,9 +327,10 @@ function ConfigForm {
     # Add buttons to the ToolStrip
     $toolStrip.Items.Add($bmButton)
     if($global:debug){Write-Host "Debug: Added Branch Manager button to toolStrip"}
-    
+
+    # Get the config lines from config.json
     function RefreshConfigLines {
-        $global:lines = Get-Content $path\config.txt
+        $global:lines = Get-ConfigLines
         if($global:debug){Write-Host "Debug: Refreshed config. Now have $($global:lines.Count) lines from config.txt"}
     }
 
@@ -487,7 +489,8 @@ function ConfigForm {
             if ($labelText -match "show|hide" -and $clickedButton.Text -ne "Commit") {
                 # Handle show/hide toggle
                 $newLabelText = if ($labelText.Split('¦')[0].Trim() -eq "show") { "hide" } else { "show" }
-                ReplaceLine $labelText "$newLabelText¦$value"
+                # Update config.json
+                Set-CommandVisibility -Command $value -Visibility $newLabelText
                 RefreshConfigLines
                 $global:formLabels[$clickedButtonIndex].Text = $newLabelText
                 $global:labelText = $newLabelText
@@ -496,13 +499,15 @@ function ConfigForm {
                 $state.HasUncommittedChanges = $false
             }
             elseif ($labelText -match "show|hide" -and $clickedButton.Text -eq "Commit"){
-                $newValue = $labelText.Split('¦')[0].Trim()+'¦'+$value.Trim()
-                ReplaceLine $labelText $newValue
+                $newValue = $value.Trim()
+                $lastValue = $state.LastCommittedText
+                # Update config.json
+                Set-CommandValue -Visibility $labelText.Split('¦')[0].Trim() -Value $value.Trim() -LastValue $lastValue
                 PerformAction "Saved" $newValue
                 RefreshConfigLines
                 $global:labelText = $newLabelText
                 $clickedButton.Text = if ($newLabelText -eq "show") { "show" } else { "hide" }
-                $state.LastCommittedText = $value
+                $state.LastCommittedText = $value.Trim()
                 $state.HasUncommittedChanges = $false
             }
             elseif ($state.HasUncommittedChanges) {
@@ -559,7 +564,7 @@ function DetermineAction($index, $value, $ButtonState) {
                 if($value.Trim() -eq "cpu"){
                     $BuildTest = $true
                 }
-                if ($BuildTest -ne $false){ EditConfig $global:cfg ; return "BuildLlama" } else { "Error" }
+                if ($BuildTest -ne $false){ Set-ConfigValue -Key $global:cfg -Value $value ; return "BuildLlama" } else { "Error" }
             }
         }
         default {
@@ -586,25 +591,15 @@ function PerformAction($action, $value) {
             [System.Windows.Forms.MessageBox]::Show("The repo for Llama.Cpp has been changed, you must set the branch to be built.")
         }
         "BuildLlama" { 
-            $global:cfgValue = "True"; $global:cfg = "rebuild"; EditConfig $global:cfg
+            Set-ConfigValue -Key "rebuild" -Value "True"
             [System.Windows.Forms.MessageBox]::Show("Llama.Cpp has been scheduled to be rebuilt.")
             SetButton
         }
         "DefaultAction" { 
-            EditConfig $global:cfg
+            Set-ConfigValue -Key $global:cfg  -Value $value
             [System.Windows.Forms.MessageBox]::Show("Committed record $global:cfg¦$value")
         }
     }
-}
-
-function ReplaceLine($lineText, $ReplacementTxt){
-$fileContent = Get-Content $path\config.txt -Raw
-
-# Replace the old text with the new text
-$newContent = $fileContent -replace $lineText, $ReplacementTxt
-
-# Save the updated content back to the file without adding a newline at the end
-$newContent -join "`r`n" | Set-Content -Path "$path\config.txt" -NoNewline
 }
 
 function CleanRepo ($text) {
@@ -623,11 +618,10 @@ function RefreshBranchComboBox {
     $release_branchIndex = -1
     
     Set-Location $path\llama.cpp
-    $global:cfg = "repo"
-    $repo = RetrieveConfig $global:cfg
+    $repo = Get-ConfigValue -Key "repo"
     $checkBranch = (git branch --show-current)
     # if checkbranch is null then we are using the tag of a release.
-    if($checkBranch -ne $null){$currentBranch = $checkBranch.Trim()}else{$global:cfg = "branch"; $currentBranch = RetrieveConfig $global:cfg }
+    if($checkBranch -ne $null){$currentBranch = $checkBranch.Trim()}else{$currentBranch = Get-ConfigValue -Key "branch" }
     
     # Find the branch ComboBoxes
     foreach ($index in $global:comboBoxes.Keys) {
@@ -722,7 +716,7 @@ function BranchManager {
                 param($sender, $e)
                 $branchToUpdate = $sender.Parent.Controls[1].Text -replace '^\* ', ''
                 Set-Location $RepoPath
-                $global:cfg = "branch" ; $currentBranch = RetrieveConfig $global:cfg # get-set the flag for $branch.
+                $currentBranch = Get-ConfigValue -Key "branch" # get-set the flag for $branch.
                 git checkout $branchToUpdate
                 $log_name = $branchToUpdate -replace "[-/]","_"
                 $gitstatus = Invoke-Expression "git pull"

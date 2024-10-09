@@ -1,0 +1,20 @@
+Version 0.27.3
+Improvements in this merge:
+The config has been converted to json and moved to settings\config.json.
+
+Changes:
+
+- Dropdown List
+  - Show more content in LLM and Task Lists.
+
+- Replaced config.txt
+  - This is now config.json the change was made to manage the entries better.
+
+- Update-Config
+  - This will now properly update the config with new or missing entries.
+  - When the file is created the program will start afterward.
+
+Bug-fix:
+
+- Release Notes
+  - Presentation of release notes should work for all systems now.
