@@ -3,7 +3,8 @@ Llama.Cpp-Toolbox is a PowerShell GUI interface, designed to streamline your wor
 
 The main window includes functionality allowing you to clone models using git and keep them updated, convert and quantize them, inspect gguf metadata, as well as aditional functionality.  
 
-![Screenshot 2024-09-25 162923](https://github.com/user-attachments/assets/352988c2-6457-4044-a180-9498c53ae6e7)
+![image](https://github.com/user-attachments/assets/ab3df6c5-11a7-4483-9264-5e9d1b3e9ba9)
+
 
 
 Here's an overview of its functionality:
@@ -12,6 +13,9 @@ Here's an overview of its functionality:
   - This menu item will open the config form that will allow you to manage Toolbox options and llama.cpp branches.
   - Select the release or dev branch you wish to build, all package requirements will be set as needed.
   - You may edit and show or hide options for the task list menu.
+
+ **Process Manager**
+  - This menu item will open the Process Manager that will allow you to manage running models.
  
  **Update llama.cpp**
    - This menu item allows you to use the latest git pull of llama.cpp from its GitHub repository. It will prompt you with a confirmation message before proceeding. Upon completion, it will not update the toolbox GUI.
@@ -32,26 +36,34 @@ Here's an overview of its functionality:
    - This is the main action button that triggers various tasks based on the selected model (from the first dropdown) and task (from the second dropdown). Upon execution, it will attempt to complete the action and display the information in the window.
 
  **Task List**
-   - This is the list of functions to execute based on the selected model (from the first dropdown) and task (from the second dropdown). Upon execution, it will display the information in the window.
+  - This is the list of functions to execute based on the selected model (from the first dropdown) and task (from the second dropdown). Upon execution, it will display the information in the window.
+  - Include any options llama.cpp supports.
 
-**llama-server**
+```Symlink```
+   - This task creates a symlink for the selected model in the directory specified by the user in the config file (symlinkdir). It requires administrative privileges and displays status information during the creation process.
+   - If you choose not to provide the admin rights at the prompt you will still recieve the command to be used via the windows Command Prompt in the directory you wish to create the symlink.
+
+```Model List```
+   - This task lists all available models in your local directory.
+   - Copy and paste the pre-formatted text to compare them all in the [open-llm-leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard).
+
+```llama-cli```
+  - Run the selected model from the command line interface.
+  - Set your own system prompt by editing the task in the list before you click process.
+
+```llama-server```
   - Start your own llama server for access via the OpenAI-API
   - This will also open the default browser to allow you to use the llama.cpp web based chat interface.
-  - If you want to set a port, add an api key or other option just add it to the config.  "llama-server 8081 --api-key KEY --alias local-llama"
+  - If you want to set a port, add an api key or other option just edit the command. To save it add it to the config.  "llama-server 8081 --api-key KEY --alias local-llama"
 
- **Quantize**
-   - This function quantizes the selected model to reduce its memory footprint while maintaining performance. It uses the llama-quantize.exe utility from the llama.cpp framework, which is included in the tool's virtual environment. The process involves converting the model into a new format with varying levels of compression and then displaying status information during the quantization steps.
-  - Custom options may be added to the config.
- **Convert**
+```Convert```
    - These scripts attempt to convert the selected model from one format (e.g., .bin or .safetensors) to another (.gguf). It utilizes the selected conversion script from the second dropdown menu and displays progress information during the conversion process.
 
- **Model List**
-   - This task lists all available models in your local directory, allowing you to easily select a model for further action.
+```Quantize```
+   - This function quantizes the selected model to reduce its memory footprint while maintaining performance. It uses the llama-quantize.exe utility from the llama.cpp framework, which is included in the tool's virtual environment. The process involves converting the model into a new format with varying levels of compression and then displaying status information during the quantization steps.
+  - Custom options may be added to the config, certain usefull items have been predefined.
 
- **Symlink**
-   - This task creates a symlink for the selected model in the directory specified by the user in the config file (symlinkdir). It requires administrative privileges and displays status information during the creation process.
-
-**gguf_dump**
+```gguf_dump```
   - This task allows you to retrieve metadata directly from any gguf.
   - Custom calls may be added to the config.
 
