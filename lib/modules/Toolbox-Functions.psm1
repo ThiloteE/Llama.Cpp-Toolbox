@@ -2,7 +2,7 @@
 # Contains the functions.
 
 # Toolbox-Functions version
-$global:version_func = "0.1.3"
+$global:version_func = "0.1.4"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck {
@@ -264,6 +264,8 @@ function InstallLlama {
     pip install cmake
     pyenv rehash
     UpdatePackages
+    Update-Config
+    Set-ConfigValue -Key "rebuild" -Value "True" # set the value for $rebuild.
     Set-Location -Path $path\llama.cpp
     $branch = Get-NewRelease # Get the latest release version.
     Set-GitBranch $branch # Set the cfg to this branch then build it.
