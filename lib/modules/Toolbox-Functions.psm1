@@ -265,6 +265,7 @@ function InstallLlama {
     pyenv rehash
     UpdatePackages
     Update-Config
+    Set-ConfigValue -Key "rebuild" -Value "True" # set the value for $rebuild.
     Set-Location -Path $path\llama.cpp
     $branch = Get-NewRelease # Get the latest release version.
     Set-GitBranch $branch # Set the cfg to this branch then build it.
