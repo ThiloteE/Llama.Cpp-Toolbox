@@ -1,4 +1,4 @@
-**Simple installation, just download "Llama.Cpp-Toolbox.ps1" to the directory you want to install in and run the script.**
+**Simple installation, just download "LlamaCpp-Toolbox.ps1" to the directory you want to install in and run the script.**
 
 # Llama.Cpp-Toolbox
 Llama.Cpp-Toolbox is a PowerShell GUI interface, designed to streamline your workflow when working with models using llama.cpp. 
