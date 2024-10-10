@@ -1,0 +1,8 @@
+Version 0.27.4
+Improvements in this merge:
+The installer has been updated to work for the new modular toolbox.
+
+Bug-fix:
+
+- New Installer
+  - Easy installer now works.
