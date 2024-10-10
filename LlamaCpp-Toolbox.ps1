@@ -32,7 +32,7 @@ Import-Module $path\lib\modules\Toolbox-GUI-ProcessManager.psm1
 
 # Check for prerequisites and install as needed on first run or when CFG is not detected.
 function PreReqs {
-    if($isInstalled -eq "True"){Update-Config ; Main}
+    if($isInstalled -eq "True" -and !(Test-Path "$path\llama.cpp")){InstallLlama; Update-Config ; $firstRun = "True" ; Main}else{Update-Config ; Main}
     else{
     if (python --version){$python = 1; Write-Host "(*) python is on path"}else{$python = 0; Write-Host "( ) python isn't ready"}
     if (pyenv){$pyenv = 1; Write-Host "(*) pyenv is ready"}else{$pyenv = 0; Write-Host "( ) pyenv isn't ready"}

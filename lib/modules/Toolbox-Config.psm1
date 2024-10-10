@@ -363,8 +363,8 @@ function Restore-Config {
     param(
         [string]$ConfigPath = "$path\lib\settings\config.json"
     )
-    
-    $script:defaultConfig | ConvertTo-Json -Depth 10 | Set-Content $ConfigPath
+    if (Test-Path "$path\lib\settings"){ } else { mkdir "$path\lib\settings" }
+    $script:defaultConfig | ConvertTo-Json -Depth 10 | Set-Content $ConfigPath -Force
 }
 
 # Function to get config as ordered lines
