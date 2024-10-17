@@ -5,7 +5,7 @@ Llama.Cpp-Toolbox is a PowerShell GUI interface, designed to streamline your wor
 
 The main window includes functionality allowing you to clone models using git and keep them updated, convert and quantize them, inspect gguf metadata, as well as aditional functionality.  
 
-![image](https://github.com/user-attachments/assets/ab3df6c5-11a7-4483-9264-5e9d1b3e9ba9)
+![Screenshot 2024-10-17 111532](https://github.com/user-attachments/assets/46092448-65a4-4d49-83e5-7deda22e1ad4)
 
 
 
@@ -57,6 +57,24 @@ Here's an overview of its functionality:
   - Start your own llama server for access via the OpenAI-API
   - This will also open the default browser to allow you to use the llama.cpp web based chat interface.
   - If you want to set a port, add an api key or other option just edit the command. To save it add it to the config.  "llama-server 8081 --api-key KEY --alias local-llama"
+
+```llama-cvector-generator```
+  - Easily generate control vectors for .gguf models.
+  - Add argument options after the provided task executable cvector-generator.
+  - A simple example task has been provided, modify as needed.
+    - I included minimum arguments for context and NGL in an attempt to prevent training failure. 
+    - Better results require more than 10 layers to be processed. "-ngl 10" (use more if possible)
+    - I set the context setting low to mitigate failure. "-c 2048" (use more if possible)
+    - Ensure your control example text files use the correct chat template for the model.
+    - Find more information from llama.cpp on github.
+
+  - Chat argument example:  --control-vector-scaled file value
+    - Use it with cli or server, provide the argument followed by the full file path and a value between 1.0 and -1.0
+    - I found that with a value close to 1.0 the example produces delirious depression.
+    - I found that the example produces neutral emotion with a value of 0.
+    - I found that with a value close to -1.0 the example produces delirious happiness.
+    - Apply as many control vectors as you want.
+    - Find more information from llama.cpp on github.
 
 ```Convert```
    - These scripts attempt to convert the selected model from one format (e.g., .bin or .safetensors) to another (.gguf). It utilizes the selected conversion script from the second dropdown menu and displays progress information during the conversion process.
