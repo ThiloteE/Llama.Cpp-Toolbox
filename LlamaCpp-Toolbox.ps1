@@ -3,7 +3,7 @@
 # This also acts as the toolbox environment setup script.
 
 # Llama.cpp-Toolbox version
-$global:version = "0.27.4"
+$global:version = "0.28.0"
 
 #$global:debug = $true
 

@@ -2,7 +2,7 @@
 # Ordered JSON Config Module for Llama.Cpp-Toolbox
 
 # Toolbox Config Text Version
-$global:version_cfg = "0.1.3"
+$global:version_cfg = "0.1.4"
 
 
 
@@ -77,6 +77,11 @@ $script:defaultConfig = @(
         "type" = "command"
         "visibility" = "show"
         "command" = "llama-server 8080"
+    },
+    @{
+        "type" = "command"
+        "visibility" = "show"
+        "command" = "llama-cvector-generator -c 2048 -ngl 10 --positive-file `"$path\llama.cpp\examples\cvector-generator\positive.txt`" --negative-file `"$path\llama.cpp\examples\cvector-generator\negative.txt`""
     },
     @{
         "type" = "command"
@@ -286,6 +291,8 @@ function Update-Config {
     param(
         [string]$ConfigPath = "$path\lib\settings\config.json"
     )
+    # Backup the curent config.
+    if (Test-Path $ConfigPath) {cp "$path\lib\settings\config.json" "$path\lib\settings\bak.config.json"}
 
     if (Test-Path $ConfigPath) {
         $currentConfig = Get-Content $ConfigPath | ConvertFrom-Json

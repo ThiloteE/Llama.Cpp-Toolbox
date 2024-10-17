@@ -4,7 +4,7 @@
 # todo # Assist with update of Transformers
 
 # Llama.cpp-Toolbox GUI version
-$global:version_GUI = "0.1.3"
+$global:version_GUI = "0.1.4"
 
 Add-Type -AssemblyName System.Windows.Forms
 
@@ -102,6 +102,7 @@ $Button1.Add_Click({
             ElseIf (($selectedScript -match "server") -or ($selectedScript -match "cli")) { $returnedProcess = LlamaChat $selectedDirectory $selectedScript $global:HoldingProcess ; $global:HoldingProcess += $returnedProcess } #write-host "HoldingProcess array: $global:HoldingProcess"}
             ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $global:ComboBox_llm.Text;$option = ($global:ComboBox2.Text -split ' ', 2)[1].Trim();$print=1;ggufDump $selectedModel $option $print}
             ElseIf ($selectedScript -match "symlink") {SymlinkModel}
+            ElseIf ($selectedScript -match "cvector-generator") {ControlVectorGenerator $selectedDirectory $selectedScript}
             else {$Label3.Text = "The script entered:$selectedScript was not handled."}
             }
     $print = 0 # Reset the flag so the screen wont show uncalled results from ggufDump.

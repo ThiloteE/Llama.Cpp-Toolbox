@@ -1,0 +1,46 @@
+Version 0.28.0
+New in this merge:
+Introduced control vector generator, a config.json backup and initial restAPI call functions.
+
+Features:
+
+- llama-cvector-generator
+  - Easily generate control vectors for .gguf models.
+  - Add argument options after the provided task executable cvector-generator.
+  - A simple example task has been provided, modify as needed.
+  - I included minimum arguments for context and NGL in an attempt to prevent training failure. 
+  - Better results require more than 10 layers to be processed. "-ngl 10" (use more if possible)
+  - I set the context setting low to mitigate failure. "-c 2048" (use more if possible)
+  - Ensure your control example text files use the correct chat template for the model.
+  - Find more information from llama.cpp on github.
+
+- Chat argument example:  --control-vector-scaled file value
+  - Use it with cli or server, provide the argument followed by the full file path and a value between 1.0 and -1.0
+  - I found that with a value close to 1.0 the example produces delirious depression.
+  - I found that the example produces neutral emotion with a value of 0.
+  - I found that with a value close to -1.0 the example produces delirious happiness.
+  - Apply as many control vectors as you want.
+  - Find more information from llama.cpp on github.
+
+- Update-Config
+  - A backup is created before upgrade occurs, bak.config.json is found in the same directory.
+
+- Toolbox-Functions-REST
+  - The beginning of restAPI support for future projects.
+  - This is a work in progress both at llama.cpp and here, expect changes.
+  - This can be found in \modules and is not yet imported when running the toolbox.
+  - An extensive example of using ChatCompletion is provided
+  - Get-ChatCompletion for chat style messaging.
+	  - SendMessage combines sending receiving and saving.
+	  - Save-MessageArray is used for saving conversations.
+	  - Load-MessageArray is used for loading existing conversations.
+	  - InitializeChat get existing chat or start new one.
+	  - Import-Messages from other chats.
+	  - Import-SystemPrompt will load a saved system prompt. (WIP)
+  - Get-Completion for completion requests.
+  - Get-Slots used to get properties of the server.
+  - Get-Health used to get health of the server.
+  - Get-Props used to get properties of the server.
+  - Set-Props used to set properties of the server. (WIP)
+  - Save-KVCache this is labeled by llama.cpp as 'not production ready'.
+  - Restore-KVCache this is labeled by llama.cpp as 'not production ready'.

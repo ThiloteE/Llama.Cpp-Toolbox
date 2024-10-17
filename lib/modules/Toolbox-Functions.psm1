@@ -2,7 +2,7 @@
 # Contains the functions.
 
 # Toolbox-Functions version
-$global:version_func = "0.1.4"
+$global:version_func = "0.2.0"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck {
@@ -143,6 +143,73 @@ function QuantizeModel ( $selectedModel, $selectedScript ) {
     else {
         $label3.Text = "Quantizing failed..."
         $TextBox2.Text = "You must select a .gguf model, either -f16 or -f32"
+    }
+}
+
+# Generate control vectors for the selected model.
+function ControlVectorGenerator ( $selectedModel, $selectedScript ) {
+    
+    if ($selectedModel -match ".gguf") {
+        # Get the models name and prepare it to be used with the option later.
+        $modelName = ggufDump $selectedModel "general.name"
+        $nameModelDir = $modelName.Replace(" ","-")
+        if ($nameModelDir -eq ""){$nameModelDir = "Output"}
+        # Extract parts from the selected item in the combobox.
+        $executable = ($selectedScript).Split(' ')[0] # The executable to run.
+        $nthreads = [Environment]::ProcessorCount /2 #$NumberOfCores
+        $arguments = "" # Empty list to be filled with all the args the user wants to apply.
+
+        # Ensure directory exists
+        if (Test-Path $path\Generated\Control-Vectors\$nameModelDir){}else{mkdir $path\Generated\Control-Vectors\$nameModelDir}
+
+        # Create timestamp for file to be named
+        $timestamp = Get-Date -Format "yyyyMMddHHmmss"
+
+        # Get arguments prepared
+        foreach ($argument in (($selectedScript).Split(' '))){
+            if ($argument -ne $executable) {
+                $arguments = $arguments + "$argument "
+            }
+        }
+
+        $arguments = $arguments.Trim()
+        
+        # Navigate to the build directory where llama-cvector-generator.exe resides
+        Set-Location -Path $path\llama.cpp\build\bin\Release
+        
+        if (Test-Path .\llama-cvector-generator.exe) {
+            Write-Host "Executable found"
+        } else {
+            $label3.Text = "Generating control vector failed..."
+            $TextBox2.Text = "Executable not found in current directory[System.Environment]::NewLineCurrent directory: $PWD"
+            break
+        }
+
+        # Clear old info.
+        $TextBox2.Text = ""
+        
+        # Generate cVector for the selected model with the new name, and arguments.        
+        $arguments = "--model `"$path\Converted\$selectedModel`" --output-file `"$path\Generated\Control-Vectors\$nameModelDir\$timestamp-control_vector.gguf`" $arguments --threads $nthreads"
+        try {
+            Start-Process -FilePath ".\llama-cvector-generator.exe" -ArgumentList $arguments -NoNewWindow -Wait
+        }
+        catch [Exception] {
+            $label3.Text = "Generating control vector failed..."
+            $TextBox2.Text = $_.Exception.Message
+        }
+
+        # Update the GUI
+        if ($TextBox2.Text -ne "") {}
+        else {
+            $label3.Text = "Generated control vector for $selectedModel"
+            $TextBox2.Text = "Successfully generated control vector, $path\Generated\Control-Vectors\$nameModelDir\$timestamp-control_vector.gguf",[System.Environment]::NewLine,[System.Environment]::NewLine,"Generated using the following args: `".\llama-cvector-generator.exe --model $path\Converted\$selectedModel --output-file $path\Generated\Control-Vectors\$nameModelDir\$timestamp-control_vector.gguf $arguments --threads $nthreads`""
+        }
+    }
+
+    # If the selected model was not a gguf we can't do anything with it!
+    else {
+        $label3.Text = "Generating control vector failed..."
+        $TextBox2.Text = "You must select a .gguf model."
     }
 }
 
