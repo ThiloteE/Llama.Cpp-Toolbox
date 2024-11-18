@@ -1,5 +1,5 @@
 # Optimizer version
-$global:Optimizer_Ver = 0.1.1
+$global:Optimizer_Ver = 0.1.2
 
 function TestPort{
     $startPort = 10000
@@ -142,7 +142,7 @@ function Get-OptimumArgs ($executable, $selectedModel, $minCtx, $maxCtx, $maxNGL
     $optimalCTX = 0
     
     # Start with maximum NGL and work down if necessary
-    for ($ngl = $maxNGL; $ngl -ge 1; $ngl--) {
+    for ($ngl = $maxNGL; $ngl -ge 0; $ngl--) {
         Write-Host "Testing NGL: $ngl"
         $ctx = Find-OptimalContextLength $ngl $minCtx $maxCtx
         
@@ -153,7 +153,7 @@ function Get-OptimumArgs ($executable, $selectedModel, $minCtx, $maxCtx, $maxNGL
         }
     }
 
-    if ($optimalNGL -eq 0) {
+    if ($optimalCTX -eq 0) {
         Write-Host "Could not find a working configuration"
         return "0,0"
     }

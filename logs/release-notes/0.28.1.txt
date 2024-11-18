@@ -1,0 +1,14 @@
+Version 0.28.1
+New in this merge:
+Cleanup report after control vector generator.
+
+Changes:
+
+- Report
+  - Remove extra presentation of argument "--threads" during report after control vector generation.
+
+- Server or Cli
+  - Resolved a loading failure when trying to load a model by mistakenly selecting the pre-converted version instead of a .gguf
+  
+- CPU only
+  - Set NGL to 0 if the user selected "CPU" in configuration. (Number Gpu Layers)

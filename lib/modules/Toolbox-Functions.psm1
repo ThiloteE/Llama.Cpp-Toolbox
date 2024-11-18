@@ -2,7 +2,7 @@
 # Contains the functions.
 
 # Toolbox-Functions version
-$global:version_func = "0.2.0"
+$global:version_func = "0.2.1"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck {
@@ -202,7 +202,7 @@ function ControlVectorGenerator ( $selectedModel, $selectedScript ) {
         if ($TextBox2.Text -ne "") {}
         else {
             $label3.Text = "Generated control vector for $selectedModel"
-            $TextBox2.Text = "Successfully generated control vector, $path\Generated\Control-Vectors\$nameModelDir\$timestamp-control_vector.gguf",[System.Environment]::NewLine,[System.Environment]::NewLine,"Generated using the following args: `".\llama-cvector-generator.exe --model $path\Converted\$selectedModel --output-file $path\Generated\Control-Vectors\$nameModelDir\$timestamp-control_vector.gguf $arguments --threads $nthreads`""
+            $TextBox2.Text = "Successfully generated control vector, $path\Generated\Control-Vectors\$nameModelDir\$timestamp-control_vector.gguf",[System.Environment]::NewLine,[System.Environment]::NewLine,"Generated using the following args: `".\llama-cvector-generator.exe --model $path\Converted\$selectedModel --output-file $path\Generated\Control-Vectors\$nameModelDir\$timestamp-control_vector.gguf $arguments`""
         }
     }
 
