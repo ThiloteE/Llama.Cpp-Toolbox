@@ -62,9 +62,9 @@ Here's an overview of its functionality:
   - Easily generate control vectors for .gguf models.
   - Add argument options after the provided task executable cvector-generator.
   - A simple example task has been provided, modify as needed.
-    - I included minimum arguments for context and NGL in an attempt to prevent training failure. 
-    - Better results require more than 10 layers to be processed. "-ngl 10" (use more if possible)
-    - I set the context setting low to mitigate failure. "-c 2048" (use more if possible)
+    - In the example I included arguments for context and NGL.
+    - The NGL setting enables the GPU, remove it to process on CPU only. "-ngl 10" (use more if possible) 
+    - I set the context setting low to allow for more GPU layers. "-c 2048" (use more if possible)
     - Ensure your control example text files use the correct chat template for the model.
     - Find more information from llama.cpp on github.
 
