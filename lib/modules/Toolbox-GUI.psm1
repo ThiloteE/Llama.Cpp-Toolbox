@@ -4,7 +4,7 @@
 # todo # Assist with update of Transformers
 
 # Llama.cpp-Toolbox GUI version
-$global:version_GUI = "0.1.4"
+$global:version_GUI = "0.1.5"
 
 Add-Type -AssemblyName System.Windows.Forms
 
@@ -276,7 +276,9 @@ function AboutForm {
     $label_about_name.AutoSize = $true
     $label_about_version = New-Object System.Windows.Forms.Label
     $label_about_version.Font = [System.Drawing.Font]::new("Microsoft Sans Serif", 10, [System.Drawing.FontStyle]::Bold)
+    Set-Location $path\llama.cpp
     $label_about_version.Text = (git rev-parse --short HEAD)
+    Set-Location $path
     $label_about_version.Location = New-Object System.Drawing.Point(115, 9)
     $label_about_version.AutoSize = $true
 

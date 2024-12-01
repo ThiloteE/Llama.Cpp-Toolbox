@@ -12,3 +12,6 @@ Changes:
   
 - CPU only
   - Set NGL to 0 if the user selected "CPU" in configuration. (Number Gpu Layers)
+  
+- About
+  - Display correct llama.cpp hash.
