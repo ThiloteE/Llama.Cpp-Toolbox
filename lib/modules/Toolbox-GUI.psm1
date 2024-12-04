@@ -232,7 +232,7 @@ $Button2.Add_Click({
 
 # Request confirmation from the user.
 function Confirm ($message) {
-    $halt = 1 # Never procede without permission.
+    $halt = 1 # Never proceed without permission.
     $title = "Confirm"
     $buttons = [System.Windows.Forms.MessageBoxButtons]::YesNo
     $icon = [System.Windows.Forms.MessageBoxIcon]::Question
