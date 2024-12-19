@@ -2,7 +2,7 @@
 # Contains the functions.
 
 # Toolbox-Functions version
-$global:version_func = "0.2.1"
+$global:version_func = "0.2.2"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck {
@@ -254,7 +254,7 @@ function ggufDump ($selectedModel, $option, $print) {
         $label3Text = $matchingKey
         try {if ($metadata | Get-Member -Name $matchingKey){
             if ($metadata.$matchingKey.value){
-                $value = $metadata.$matchingKey.value -replace "\n", "\n"}}}
+                $value = $metadata.$matchingKey.value -replace '(?<=\{[^}]*)\n(?=[^}]*\})', '\n'}}}
             catch{
                 if ($option -eq "dump"){
                 $label3Text = "gguf_dump..."
@@ -266,7 +266,7 @@ function ggufDump ($selectedModel, $option, $print) {
                 $label3Text = "$option does not exist, available metadata keys below."
                 $value = $metadata
                 }}
-            finally{if ($print){$TextBox2.Text = $value; $label3.Text = $label3Text}}
+            finally{if ($print){$TextBox2.Text = $value -replace '\s*\}\s*\n', ("}"+[Environment]::NewLine); $label3.Text = $label3Text}}
         deactivate # Deactivate (venv) python environment.
         return $value
     }else{$label3.Text = "Failed...";$TextBox2.Text = "You must select a .gguf model to process."}
