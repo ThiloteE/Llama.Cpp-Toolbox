@@ -2,7 +2,7 @@
 # Contains the functions.
 
 # Toolbox-Functions version
-$global:version_func = "0.2.2"
+$global:version_func = "0.2.3"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck {
@@ -237,7 +237,7 @@ function ggufDump ($selectedModel, $option, $print) {
         # Activate the virtual environment.
         .\venv\Scripts\activate
         # Path to the Python script
-        $scriptPath = "$path\llama.cpp\gguf-py\scripts\gguf_dump.py"
+        $scriptPath = "$path\llama.cpp\gguf-py\gguf\scripts\gguf_dump.py"
 
         # Target directory containing GGUF files
         $ggufDir = "$path\Converted\"

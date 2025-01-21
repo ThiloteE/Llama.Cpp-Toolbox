@@ -18,3 +18,6 @@ Changes:
 
 - Chat Template
   - Display jinja with included format from gguf.
+  
+- gguf_dump
+  - Updated target "\gguf-py\gguf\scripts\gguf_dump.py"
