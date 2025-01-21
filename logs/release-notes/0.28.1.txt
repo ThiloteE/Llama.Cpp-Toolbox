@@ -9,9 +9,12 @@ Changes:
 
 - Server or Cli
   - Resolved a loading failure when trying to load a model by mistakenly selecting the pre-converted version instead of a .gguf
-  
+
 - CPU only
   - Set NGL to 0 if the user selected "CPU" in configuration. (Number Gpu Layers)
-  
+
 - About
   - Display correct llama.cpp hash.
+
+- Chat Template
+  - Display jinja with included format from gguf.
