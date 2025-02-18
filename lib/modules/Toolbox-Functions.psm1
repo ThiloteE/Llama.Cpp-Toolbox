@@ -2,7 +2,7 @@
 # Contains the functions.
 
 # Toolbox-Functions version
-$global:version_func = "0.2.3"
+$global:version_func = "0.2.5"
 
 # Check the version, run UpdateConfig if needed.
 function VersionCheck {
@@ -326,7 +326,7 @@ function InstallLlama {
     Read-Host "Installing llama.cpp, any key to continue"
     Set-Location -Path $path
     mkdir $path\Converted
-    git clone --progress --recurse-submodules https://github.com/ggerganov/llama.cpp.git
+    git clone --progress --recurse-submodules https://github.com/ggml-org/llama.cpp.git
     pyenv local 3.11
     pip install cmake
     pyenv rehash

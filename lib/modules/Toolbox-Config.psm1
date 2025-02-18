@@ -2,7 +2,7 @@
 # Ordered JSON Config Module for Llama.Cpp-Toolbox
 
 # Toolbox Config Text Version
-$global:version_cfg = "0.1.4"
+$global:version_cfg = "0.2.5"
 
 
 
@@ -31,7 +31,7 @@ $script:defaultConfig = @(
     @{
         "type" = "config"
         "key" = "repo"
-        "value" = "ggerganov/llama.cpp.git"
+        "value" = "ggml-org/llama.cpp.git"
     },
     @{
         "type" = "config"
@@ -57,6 +57,11 @@ $script:defaultConfig = @(
         "type" = "config"
         "key" = "minCtx"
         "value" = 4096
+    },
+    @{
+        "type" = "config"
+        "key" = "cutLayers"
+        "value" = 0
     },
     @{
         "type" = "command"

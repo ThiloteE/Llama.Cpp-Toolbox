@@ -12,7 +12,7 @@
 
 # Llama-Chat version
 # Contains chat functionality with separate process management
-$global:Llama_Chat_Ver = 0.2.4
+$global:Llama_Chat_Ver = 0.2.5
 
 # Add a hashtable to keep track of running processes
 $global:RunningProcesses = @{}
@@ -182,8 +182,9 @@ function LlamaChat ($selectedModel, $selectedScript, $ProcessArray) {
         if(!$extractedCTX -and !$extractedNGL) {$ChatSettings = Get-ChatsSettings $selectedModel}
 
         if ($ChatSettings) {
+            $cfgCutLayers = Get-ConfigValue -Key "cutLayers" # get the value for $cfgCutLayers.
             $contextLength = $ChatSettings.Optimal_CTX
-            $ngl = $ChatSettings.Optimal_NGL
+            $ngl = $ChatSettings.Optimal_NGL - $cfgCutLayers
         } else {
             $option = "metadata" # Request all metadata.
             $print = 0 # Do not print.
