@@ -355,7 +355,7 @@ function BuildLlama {
 
     Set-Location $path\llama.cpp
 
-    $cmakeArgs1 = "-B .\build $buildFlag -DGGML_NATIVE=ON"
+    $cmakeArgs1 = "-B .\build $buildFlag -DGGML_NATIVE=ON -DLLAMA_CURL=OFF"
     $cmakeArgs2 = "--build build --config Release -j $NumberOfCores"
 
     Write-Warning "Running CMake configure"
