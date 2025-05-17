@@ -1,0 +1,10 @@
+Version 0.28.2
+New in this merge:
+Modify build optiion by ThiloteE.
+
+Changes:
+
+- Build
+  - Disable cURL requirement in build options "-DLLAMA_CURL=OFF" until we figure out that issue.
+    - This function allows a person to download models from huggingface directly via llama.cpp, it seems to be problematic in windows with llama.cpp.
+    - LlamaCpp-Toolbox gets around this by providing git functionality to download models directly on the main form.
