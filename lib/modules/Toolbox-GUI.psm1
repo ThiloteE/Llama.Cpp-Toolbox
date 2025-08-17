@@ -717,7 +717,7 @@ function BranchManager {
             $rowPanel.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
             $rowPanel.Width = 519
             $rowPanel.Height = 30
-            $rowPanel.Margin = New-Object System.Windows.Forms.Padding(0,5)
+            $rowPanel.Margin = New-Object System.Windows.Forms.Padding(0,0,0,5)
 
             $updateButton = New-Object System.Windows.Forms.Button
             $updateButton.Text = "Update"
