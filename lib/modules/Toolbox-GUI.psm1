@@ -11,8 +11,8 @@ Add-Type -AssemblyName System.Windows.Forms
 $main_form = New-Object System.Windows.Forms.Form
 $main_form.Text = "Llama.cpp-Toolbox-$version"
 $main_form.Width = 750
-$main_form.Height = 500
-$main_form.MinimumSize = New-Object System.Drawing.Size(750, 500)
+$main_form.Height = 700
+$main_form.MinimumSize = New-Object System.Drawing.Size(750, 300)
 $main_form.MaximumSize = New-Object System.Drawing.Size(1300, 1300)
 
 $menuStrip1 = New-object system.windows.forms.menustrip
@@ -194,7 +194,7 @@ $TextBox2.Anchor = "Top, Left, Bottom"  # Resize with the form
 $TextBox2.Multiline = $true
 $TextBox2.ScrollBars = [System.Windows.Forms.ScrollBars]::Vertical
 $TextBox2.Location  = New-Object System.Drawing.Point(10,290)
-$TextBox2.MinimumSize = New-Object System.Drawing.Size(710,130)  # Adjust width and minimum height
+$TextBox2.MinimumSize = New-Object System.Drawing.Size(710,250)  # Adjust width and minimum height
 $main_form.Controls.Add($TextBox2)
 
 # Label for Language Models to download.
