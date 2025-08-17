@@ -1,4 +1,4 @@
-﻿# Toolbox-GUI.psm1
+# Toolbox-GUI.psm1
 # Contains the GUI elements.
 
 # todo # Assist with update of Transformers
@@ -11,9 +11,9 @@ Add-Type -AssemblyName System.Windows.Forms
 $main_form = New-Object System.Windows.Forms.Form
 $main_form.Text = "Llama.cpp-Toolbox-$version"
 $main_form.Width = 750
-$main_form.Height = 300
-$main_form.MinimumSize = New-Object System.Drawing.Size(750, 300)
-$main_form.MaximumSize = New-Object System.Drawing.Size(750, 1000)
+$main_form.Height = 500
+$main_form.MinimumSize = New-Object System.Drawing.Size(750, 500)
+$main_form.MaximumSize = New-Object System.Drawing.Size(1300, 1300)
 
 $menuStrip1 = New-object system.windows.forms.menustrip
 $mainMenu = New-Object System.Windows.Forms.ToolStripMenuItem
@@ -58,31 +58,38 @@ $helpMenu.DropDownItems.AddRange(@($aboutItem))
 
 $main_form.Controls.Add($menuStrip1)
 
-# Label for LLMs dropdown list.
+# Label for Language Models dropdown list.
 $Label = New-Object System.Windows.Forms.Label
-$Label.Text = "LLMs:"
-$Label.Location = New-Object System.Drawing.Point(110,33)
+$Label.Text = "Select a Language Model:"
+$Label.Location = New-Object System.Drawing.Point(10,122)
 $Label.AutoSize = $true
 $main_form.Controls.Add($Label)
 
-# Dropdown list containing LLMs available to process.
-$Global:ComboBox_llm = New-Object System.Windows.Forms.ComboBox
-$global:ComboBox_llm.Width = 300
-$global:ComboBox_llm.Location  = New-Object System.Drawing.Point(160,30)
-$global:ComboBox_llm.DropDownHeight = 200  # Show more of the content in the drop down list.
-$main_form.Controls.Add($global:ComboBox_llm)
+# Dropdown list containing Language Models available to process.
+$Global:ComboBox_LLM = New-Object System.Windows.Forms.ComboBox
+$global:ComboBox_LLM.Width = 600
+$global:ComboBox_LLM.Location  = New-Object System.Drawing.Point(10,150)
+$global:ComboBox_LLM.DropDownHeight = 200  # Show more of the content in the drop down list.
+$main_form.Controls.Add($global:ComboBox_LLM)
 
-# Dropdown list containing scripts to process using the selected LLM.
+# Label for command or script in dropdown list to be processed.
+$Label = New-Object System.Windows.Forms.Label
+$Label.Text = "Type a command or select a pre-configured script from the dropdown:"
+$Label.Location = New-Object System.Drawing.Point(10,182)
+$Label.AutoSize = $true
+$main_form.Controls.Add($Label)
+
+# Dropdown list containing scripts to process using the selected Language Model.
 $Global:ComboBox2 = New-Object System.Windows.Forms.ComboBox
-$global:ComboBox2.Width = 150
-$global:ComboBox2.Location  = New-Object System.Drawing.Point(465,30)
-$global:ComboBox2.DropDownWidth = 255  # Show more of the content in the drop down list.
+$global:ComboBox2.Width = 600
+$global:ComboBox2.Location  = New-Object System.Drawing.Point(10,210)
+$global:ComboBox2.DropDownWidth = 600  # Show more of the content in the drop down list.
 $global:ComboBox2.DropDownHeight = 200  # Show more of the content in the drop down list.
 $main_form.Controls.Add($global:ComboBox2)
 
 # Button to process a script.
 $Button1 = New-Object System.Windows.Forms.Button
-$Button1.Location = New-Object System.Drawing.Size(620,29)
+$Button1.Location = New-Object System.Drawing.Size(620,208)
 $Button1.Size = New-Object System.Drawing.Size(100,23)
 $Button1.Text = "Process"
 $main_form.Controls.Add($Button1)
@@ -90,20 +97,20 @@ $main_form.Controls.Add($Button1)
 # 'Process' button action.
 $Button1.Add_Click({
     $label3.Text = "";$TextBox2.Text = "" # Clear the text.
-    $selectedDirectory = $global:ComboBox_llm.Text # Selected LLM from dropdown list.
-    $selectedScript = $global:ComboBox2.Text # Selected script from dropdown list.
+    $selectedDirectory = $global:ComboBox_LLM.Text # Selected language model from dropdown list.
+    $selectedScript = $global:ComboBox2.Text # Selected script or command from dropdown list.
     If ($selectedScript -match "model-list") {ModelList} # Only requires Combobox2
     else{
-        If ($selectedDirectory -eq $null) {$Label3.Text = "Select an LLM and script to process."}
+        If ($selectedDirectory -eq $null) {$Label3.Text = "Select a language model and select a script to process."}
         else {
-            If ($selectedScript -eq $null) {$Label3.Text = "Select a script to process the LLM."}
+            If ($selectedScript -eq $null) {$Label3.Text = "Select a script to process the language lodel."}
             ElseIf ($selectedScript -match "quantize") {QuantizeModel $selectedDirectory $selectedScript}
             ElseIf ($selectedScript -match "convert") {ConvertModel $selectedDirectory $selectedScript}
             ElseIf (($selectedScript -match "server") -or ($selectedScript -match "cli")) { $returnedProcess = LlamaChat $selectedDirectory $selectedScript $global:HoldingProcess ; $global:HoldingProcess += $returnedProcess } #write-host "HoldingProcess array: $global:HoldingProcess"}
-            ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $global:ComboBox_llm.Text;$option = ($global:ComboBox2.Text -split ' ', 2)[1].Trim();$print=1;ggufDump $selectedModel $option $print}
+            ElseIf ($selectedScript -match "gguf_dump") {$selectedModel = $global:ComboBox_LLM.Text;$option = ($global:ComboBox2.Text -split ' ', 2)[1].Trim();$print=1;ggufDump $selectedModel $option $print}
             ElseIf ($selectedScript -match "symlink") {SymlinkModel}
             ElseIf ($selectedScript -match "cvector-generator") {ControlVectorGenerator $selectedDirectory $selectedScript}
-            else {$Label3.Text = "The script entered:$selectedScript was not handled."}
+            else {$Label3.Text = "The script entered:$selected Script was not handled."}
             }
     $print = 0 # Reset the flag so the screen wont show uncalled results from ggufDump.
     }
@@ -112,14 +119,14 @@ $Button1.Add_Click({
 # Label for Status
 $Label2 = New-Object System.Windows.Forms.Label
 $Label2.Text = "Status:"
-$Label2.Location  = New-Object System.Drawing.Point(5,65)
+$Label2.Location  = New-Object System.Drawing.Point(10,262)
 $Label2.AutoSize = $true
 $main_form.Controls.Add($Label2)
 
 # Label to display Status
 $Label3 = New-Object System.Windows.Forms.Label
 $Label3.Text = ""
-$Label3.Location  = New-Object System.Drawing.Point(60,65)
+$Label3.Location  = New-Object System.Drawing.Point(40,262)
 $Label3.AutoSize = $true
 $main_form.Controls.Add($Label3)
 
@@ -138,12 +145,12 @@ function SetButton {
             $halt = Confirm "Please be patient, this may take a while. `n`nContinue?" # Inform the user this will take a while.
             if($halt -eq 0){BuildLlama}{}
         } else {
-            # Function to 'update' from list of LLMs.
+            # Function to 'update' from list of Language Models.
             $label3.Text = ""
             $TextBox2.Text = "" # Clear the text.
-            $selectedDirectory = $global:ComboBox_llm.Text # Selected LLM from dropdown list.
+            $selectedDirectory = $global:ComboBox_LLM.Text # Selected Language Model from dropdown list.
             If ($selectedDirectory -eq $null) {
-                $Label3.Text = "LLM list updated, select an LLM to check git status."
+                $Label3.Text = "Language Model list updated, select an Language Model to check git status."
             } Else {
                 Set-Location $models\$selectedDirectory
                 # Check for any updates using Git.
@@ -186,26 +193,26 @@ $TextBox2 = New-Object System.Windows.Forms.TextBox
 $TextBox2.Anchor = "Top, Left, Bottom"  # Resize with the form
 $TextBox2.Multiline = $true
 $TextBox2.ScrollBars = [System.Windows.Forms.ScrollBars]::Vertical
-$TextBox2.Location  = New-Object System.Drawing.Point(10,120)
-$TextBox2.MinimumSize = New-Object System.Drawing.Size(700, 130)  # Adjust width and minimum height
+$TextBox2.Location  = New-Object System.Drawing.Point(10,290)
+$TextBox2.MinimumSize = New-Object System.Drawing.Size(710,130)  # Adjust width and minimum height
 $main_form.Controls.Add($TextBox2)
 
-# Label for LLMs to download.
+# Label for Language Models to download.
 $Label4 = New-Object System.Windows.Forms.Label
-$Label4.Text = "Git Clone LLM from URL:"
-$Label4.Location = New-Object System.Drawing.Point(5,93)
+$Label4.Text = "Git Clone Language Model from URL:"
+$Label4.Location = New-Object System.Drawing.Point(10,63)
 $Label4.AutoSize = $true
 $main_form.Controls.Add($Label4)
 
-# Textbox for LLMs URL.
+# Textbox for Language Models URL.
 $TextBox1 = New-Object System.Windows.Forms.TextBox
-$TextBox1.Width = 320
-$TextBox1.Location  = New-Object System.Drawing.Point(140,90)
+$TextBox1.Width = 600
+$TextBox1.Location  = New-Object System.Drawing.Point(10,90)
 $main_form.Controls.Add($TextBox1)
 
-# Button to clone an LLM.
+# Button to clone a Language Model.
 $Button2 = New-Object System.Windows.Forms.Button
-$Button2.Location = New-Object System.Drawing.Size(480,88)
+$Button2.Location = New-Object System.Drawing.Size(620,88)
 $Button2.Size = New-Object System.Drawing.Size(100,23)
 $Button2.Text = "Clone"
 $main_form.Controls.Add($Button2)
@@ -710,7 +717,7 @@ function BranchManager {
             $rowPanel.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
             $rowPanel.Width = 519
             $rowPanel.Height = 30
-            $rowPanel.Margin = New-Object System.Windows.Forms.Padding(0, 0, 0, 5)
+            $rowPanel.Margin = New-Object System.Windows.Forms.Padding(0,5)
 
             $updateButton = New-Object System.Windows.Forms.Button
             $updateButton.Text = "Update"
