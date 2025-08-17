@@ -5,8 +5,7 @@ Llama.Cpp-Toolbox is a PowerShell GUI interface, designed to streamline your wor
 
 The main window includes functionality allowing you to clone models using git and keep them updated, convert and quantize them, inspect gguf metadata, as well as aditional functionality.  
 
-![Screenshot 2024-10-17 111532](https://github.com/user-attachments/assets/46092448-65a4-4d49-83e5-7deda22e1ad4)
-
+<img width="733" height="691" alt="Llama cpp-Toolbox-version-0.30.0-GUI" src="https://github.com/user-attachments/assets/aaa0e91e-1ae4-46be-a736-256899827533" />
 
 
 Here's an overview of its functionality:
