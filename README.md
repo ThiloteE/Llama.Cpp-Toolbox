@@ -14,6 +14,7 @@ The main window includes functionality allowing you to clone models using git an
   - This menu item will open the config form that will allow you to manage Toolbox options and llama.cpp branches.
   - Select the release or dev branch you wish to build, all package requirements will be set as needed.
   - You may edit and show or hide options for the task list menu.
+<img width="736" height="482" alt="image" src="https://github.com/user-attachments/assets/0a83b6eb-7b1a-4513-9805-59c9965991ee" />
 
 #### Main Menu > Process Manager
   - This menu item will open the Process Manager that will allow you to manage running models.
