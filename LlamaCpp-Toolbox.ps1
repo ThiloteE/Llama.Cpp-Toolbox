@@ -3,7 +3,7 @@
 # This also acts as the toolbox environment setup script.
 
 # Llama.cpp-Toolbox version
-$global:version = "0.29.0"
+$global:version = "0.30.0"
 
 #$global:debug = $true
 
@@ -73,6 +73,7 @@ function Main {
         ListModels # Rebuild the list each init.
         if ($firstRun -ne $null){
             [System.Windows.Forms.MessageBox]::Show("This is your first run!`n`nI've already selected the most recent release for you.`n`nI'm opening the config form now. You should choose the device you wish to 'build' for and click 'Commit'.`n`nYou should 'hide' any options you don't want to use.`n`nThen close the config form to proceed.")
+
             ConfigForm
         }
         $main_form.ShowDialog() # Start the GUI.

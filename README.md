@@ -5,41 +5,39 @@ Llama.Cpp-Toolbox is a PowerShell GUI interface, designed to streamline your wor
 
 The main window includes functionality allowing you to clone models using git and keep them updated, convert and quantize them, inspect gguf metadata, as well as aditional functionality.  
 
-![Screenshot 2024-10-17 111532](https://github.com/user-attachments/assets/46092448-65a4-4d49-83e5-7deda22e1ad4)
+<img width="733" height="691" alt="Llama cpp-Toolbox-version-0.30.0-GUI" src="https://github.com/user-attachments/assets/aaa0e91e-1ae4-46be-a736-256899827533" />
 
 
+## Functionality Overview:
 
-Here's an overview of its functionality:
-
-**Config**
+#### Main Menu > Config
   - This menu item will open the config form that will allow you to manage Toolbox options and llama.cpp branches.
   - Select the release or dev branch you wish to build, all package requirements will be set as needed.
   - You may edit and show or hide options for the task list menu.
 
- **Process Manager**
+#### Main Menu > Process Manager
   - This menu item will open the Process Manager that will allow you to manage running models.
  
- **Update llama.cpp**
+#### Main Menu > Update llama.cpp
    - This menu item allows you to use the latest git pull of llama.cpp from its GitHub repository. It will prompt you with a confirmation message before proceeding. Upon completion, it will not update the toolbox GUI.
    - The package requirements will be updated ensuring you have the latest packages for your build.
 
- **Update Toolbox**
+#### Main Menu > Update Toolbox
    - This menu item allows you to update the LlamaCpp-Toolbox itself from its GitHub repository. It will prompt you with a confirmation message before proceeding. Upon completion, it will restart the toolbox GUI as needed, for any changes to take effect.
 
- **Update/Rebuild Button**
+#### Update/Rebuild Button
    - Update, This button checks if there are any updates available for the selected model (from the first dropdown). If an update is found, git will pull the changes.
    - Update, If there is nothing selected this button will detect LLMs you may have added to the directory manually then put them into the list.
    - Rebuild, When llama.cpp needs to be built this button will allow you to do that.
 
- **Clone Button**
+#### Clone Button
    - Use this button to git clone a model from a given URL into the llama.cpp models directory. After cloning, it will list all available models in the dropdown menu.
 
-**Process Button**
+#### Process Button
    - This is the main action button that triggers various tasks based on the selected model (from the first dropdown) and task (from the second dropdown). Upon execution, it will attempt to complete the action and display the information in the window.
 
- **Task List**
-  - This is the list of functions to execute based on the selected model (from the first dropdown) and task (from the second dropdown). Upon execution, it will display the information in the window.
-  - Include any options llama.cpp supports.
+#### Tasks List
+This is the list of functions to execute based on the selected model (from the first dropdown) and tasks (from the second dropdown). Upon execution, it will display information in the window. Includes any options llama.cpp supports.
 
 ```Symlink```
    - This task creates a symlink for the selected model in the directory specified by the user in the config file (symlinkdir). It requires administrative privileges and displays status information during the creation process.

@@ -1,0 +1,7 @@
+Version 0.30.0
+
+New in this merge:
+- Added a new label for commands and scripts
+Changes:
+- Moved labels, textboxes and buttons to sensible locations in the UI.
+- Enlarged width of textboxes. Thereby, longer names of language models, scripts, filepaths and commands are now visible.
