@@ -190,9 +190,9 @@ function SetButton {
 
 # Textbox for output.
 $TextBox2 = New-Object System.Windows.Forms.TextBox
-$TextBox2.Anchor = "Top, Left, Bottom"  # Resize with the form
+$TextBox2.Anchor = "Top, Left, Right, Bottom"  # Resize with the form
 $TextBox2.Multiline = $true
-$TextBox2.ScrollBars = [System.Windows.Forms.ScrollBars]::Vertical
+$TextBox2.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
 $TextBox2.Location  = New-Object System.Drawing.Point(10,290)
 $TextBox2.MinimumSize = New-Object System.Drawing.Size(710,250)  # Adjust width and minimum height
 $main_form.Controls.Add($TextBox2)
