@@ -310,7 +310,7 @@ function ConfigForm {
 
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "Config Llama.cpp-Toolbox"
-    $form.Size = New-Object System.Drawing.Size(550, 300)
+    $form.Size = New-Object System.Drawing.Size(750, 500)
     if($global:debug){Write-Host "Debug: Created form with size 550x300"}
     
     # Create the bottom Panel first. (form fills from bottom up)
@@ -420,7 +420,7 @@ function ConfigForm {
                 $control.Name = "Control_$index"
                 $control.Text = $controlText
                 $control.Location = New-Object System.Drawing.Point(120, $yPosition)
-                $control.Width = 300
+                $control.Width = 500
                 $panel.Controls.Add($control)
 
                 $global:controlStates[$index] = @{
@@ -440,7 +440,7 @@ function ConfigForm {
         $button = New-Object System.Windows.Forms.Button
         $button.Name = "Button_$index"
         $global:buttonIndices[$button] = $index
-        $button.Location = New-Object System.Drawing.Point(430, $yPosition)
+        $button.Location = New-Object System.Drawing.Point(630, $yPosition)
         $button.Size = New-Object System.Drawing.Size(80,23)
         $button.Text = if ($labelText -match "show") { "hide" } elseif ($labelText -match "hide") { "show" } else { "Commit" }
         $panel.Controls.Add($button)
