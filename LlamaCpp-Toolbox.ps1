@@ -13,6 +13,27 @@ $global:path = $PSScriptRoot
 # Ensure we are starting on the right path.
 Set-Location $path 
 
+### --- Environment PATH Fix --- ###
+# Relaunching into a dev console can sometimes fail to inherit the full user PATH.
+# We will manually reconstruct it to ensure git, winget, and pyenv are found.
+try {
+    $machinePath = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
+    $userPath = [System.Environment]::GetEnvironmentVariable('Path', 'User')
+    $wingetPath = "$env:LOCALAPPDATA\Microsoft\WindowsApps"
+
+    # Combine the existing path with the machine, user, and winget paths.
+    $existingPath = $env:PATH.Split(';')
+    $fullPath = ($existingPath + $machinePath.Split(';') + $userPath.Split(';') + $wingetPath) | Select-Object -Unique
+    
+    # Reassemble and set the new PATH
+    $env:PATH = $fullPath -join ';'
+    Write-Host "Successfully reconstructed environment PATH to find external tools." -ForegroundColor DarkGreen
+}
+catch {
+    Write-Warning "Could not automatically fix the environment PATH. If you see errors about 'git' or 'winget' not being found, please run this script from a 'Developer Command Prompt for VS 2022' terminal directly."
+}
+### --- End of Environment PATH Fix --- ###
+
 ### Find installed VS developer tools ###
 function Find-VsDevCmd {
     try {
