@@ -1,9 +1,7 @@
 # LlamaCpp-Toolbox Roadmap
 
-Welcome to the LlamaCpp-Toolbox Roadmap! This document provides a high-level overview of our strategic vision, ongoing development efforts, and future goals. For more granular details, specific tasks, and progress tracking, please refer to our GitHub Issues and Project Boards.
+Welcome to the LlamaCpp-Toolbox Roadmap! This document provides a high-level overview of our strategic vision, ongoing development efforts, and future goals.
 
-*   [GitHub Issues](https://github.com/YourOrg/YourRepo/issues)
-*   [GitHub Project Boards](https://github.com/YourOrg/YourRepo/projects)
 
 ## Vision
 
@@ -35,9 +33,5 @@ To be the most intuitive, powerful, and adaptable PowerShell-based toolbox for i
     *   Developing specialized workflow orchestration tools for complex, chained `llama.cpp` interactions.
     *   Implementing automated performance testing and benchmarking routines for `llama.cpp` models.
     *   Creating customizable prompt templating and management systems optimized for `llama.cpp`'s capabilities.
-
-## How to Contribute
-
-We welcome and encourage community contributions! Please refer to our [CONTRIBUTING.md](CONTRIBUTING.md) guide for detailed information on how you can help improve the LlamaCpp-Toolbox.
 
 **Note:** This roadmap is a living document and is subject to change based on project priorities, community feedback, and the evolving landscape of local LLMs. Your input is invaluable!
